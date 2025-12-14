@@ -1,16 +1,41 @@
 import React, { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import { HiExclamationCircle } from "react-icons/hi";
 
 export default function Register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmpassword, setconfirmpassword] = useState("");
+  const [error, seterror] = useState("");
+  const [loading, setloading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ email, password });
+
+    if (password !== confirmpassword) {
+      seterror("Passwords do not match");
+      return;
+    }
+
+    setloading(true);
+    seterror("");
+
+    try {
+      await API.post("/api/auth/register", {
+        name,
+        email,
+        password,
+      });
+      navigate("/login");
+    } catch (error) {
+      seterror(error.response?.data?.message || "Registration failed");
+    } finally {
+      setloading(false);
+    }
   };
 
   return (
@@ -29,6 +54,23 @@ export default function Register() {
 
             <div className="my-7">
               <form onSubmit={handleSubmit}>
+                <div className="mb-6">
+                  <label className="block mb-2 text-sm text-gray-600 dark:text-gray-400">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      seterror("");
+                    }}
+                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                    required
+                  />
+                </div>
+
                 <div className="mb-6">
                   <label
                     htmlFor="email"
@@ -57,7 +99,7 @@ export default function Register() {
                   </div>
                   <input
                     type="password"
-                    id="password"
+                    id="confirmpassword"
                     placeholder="Your Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -73,9 +115,8 @@ export default function Register() {
                     >
                       Confirm Password
                     </label>
-                    
                   </div>
-                  <input 
+                  <input
                     type="password"
                     id="password"
                     placeholder="Your Password"
@@ -84,6 +125,18 @@ export default function Register() {
                     className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
                   ></input>
                 </div>
+
+                {error && (
+                  <div
+                    className="flex items-start gap-2 mb-4 p-3 text-sm 
+                                  text-red-400 
+                                  bg-red-500/10 
+                                  rounded-md"
+                  >
+                    <HiExclamationCircle className="w-5 h-5" />
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <div className="mb-6">
                   <button

@@ -1,17 +1,31 @@
 import React, { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import { HiExclamationCircle } from "react-icons/hi";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ email, password });
+    setLoading(true);
+    setError("");
+    try {
+      const { data } = await API.post("/api/auth/login", {
+        email,
+        password,
+      });
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } catch (error) {
+      setError("Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,9 +69,9 @@ export default function Login() {
                     >
                       Password
                     </label>
-                    
                   </div>
-                  <input 
+
+                  <input
                     type="password"
                     id="password"
                     placeholder="Your Password"
@@ -67,10 +81,20 @@ export default function Login() {
                   ></input>
                 </div>
 
-                
+                {error && (
+                  <div
+                    className="flex items-start gap-2 mb-4 p-3 text-sm 
+                  text-red-400 
+                  bg-red-500/10 
+                  rounded-md"
+                  >
+                    <HiExclamationCircle className="w-5 h-5" />
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <div className="mb-6">
-                  <button 
+                  <button
                     type="submit"
                     className="w-full px-3 py-4 text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none"
                   >
@@ -83,7 +107,9 @@ export default function Login() {
                   <a
                     href="/Register"
                     className="text-indigo-400 hover:underlin hover:text-indigo-500"
-                  >Sign up</a>
+                  >
+                    Sign up
+                  </a>
                 </p>
               </form>
             </div>
