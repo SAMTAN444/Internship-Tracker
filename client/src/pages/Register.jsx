@@ -1,7 +1,113 @@
+import React, { useState } from "react";
+import API from "../services/api";
+import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
+
 export default function Register() {
-    return (
-        <>
-            Register
-        </>
-    )
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmpassword, setconfirmpassword] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log({ email, password });
+  };
+
+  return (
+    <>
+      <div className="flex items-center min-h-screen bg-white dark:bg-gray-900">
+        <div className="container mx-auto">
+          <div className="max-w-md mx-auto my-10">
+            <div className="text-center">
+              <h1 className="my-3 text-3xl font-semibold text-gray-700 dark:text-gray-200">
+                Register
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400">
+                Register to create an account
+              </p>
+            </div>
+
+            <div className="my-7">
+              <form onSubmit={handleSubmit}>
+                <div className="mb-6">
+                  <label
+                    htmlFor="email"
+                    className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    placeholder="you@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                  ></input>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex justify-between mb-2">
+                    <label
+                      htmlFor="password"
+                      className="text-sm text-gray-600 dark:text-gray-400"
+                    >
+                      Password
+                    </label>
+                  </div>
+                  <input
+                    type="password"
+                    id="password"
+                    placeholder="Your Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                  ></input>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex justify-between mb-2">
+                    <label
+                      htmlFor="password"
+                      className="text-sm text-gray-600 dark:text-gray-400"
+                    >
+                      Confirm Password
+                    </label>
+                    
+                  </div>
+                  <input 
+                    type="password"
+                    id="password"
+                    placeholder="Your Password"
+                    value={confirmpassword}
+                    onChange={(e) => setconfirmpassword(e.target.value)}
+                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                  ></input>
+                </div>
+
+                <div className="mb-6">
+                  <button
+                    type="submit"
+                    className="w-full px-3 py-4 text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none"
+                  >
+                    Register
+                  </button>
+                </div>
+
+                <p className="text-sm text-center text-gray-400">
+                  Already have an account?{" "}
+                  <a
+                    href="/login"
+                    className="text-indigo-400 hover:underlin hover:text-indigo-500"
+                  >
+                    Log In
+                  </a>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
