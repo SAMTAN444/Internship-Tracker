@@ -106,7 +106,7 @@ export default function Login() {
                 <div className="mb-6">
                   <button
                     type="submit"
-                    className="w-full px-3 py-4 text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:outline-none"
+                    className="w-full px-3 py-4 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none"
                   >
                     Log In
                   </button>
@@ -116,7 +116,7 @@ export default function Login() {
                   Don&apos;t have an account yet?{" "}
                   <a
                     href="/Register"
-                    className="text-indigo-400 hover:underlin hover:text-indigo-500"
+                    className="text-indigo-500 hover:underlin hover:text-indigo-600"
                   >
                     Sign up
                   </a>
