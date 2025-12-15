@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import { HiExclamationCircle } from "react-icons/hi";
 
 export default function Register() {
@@ -10,6 +10,7 @@ export default function Register() {
   const [confirmpassword, setconfirmpassword] = useState("");
   const [error, seterror] = useState("");
   const [loading, setloading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -25,12 +26,13 @@ export default function Register() {
     seterror("");
 
     try {
-      await API.post("/api/auth/register", {
+      const { data } = await API.post("/api/auth/register", {
         name,
         email,
         password,
       });
-      navigate("/login");
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (error) {
       seterror(error.response?.data?.message || "Registration failed");
     } finally {
@@ -89,41 +91,59 @@ export default function Register() {
                 </div>
 
                 <div className="mb-6">
-                  <div className="flex justify-between mb-2">
-                    <label
-                      htmlFor="password"
-                      className="text-sm text-gray-600 dark:text-gray-400"
+                  <label
+                    htmlFor="password"
+                    className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Your Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2
+                 text-gray-400 text-sm hover:text-gray-200"
                     >
-                      Password
-                    </label>
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
                   </div>
-                  <input
-                    type="password"
-                    id="confirmpassword"
-                    placeholder="Your Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
-                  ></input>
                 </div>
 
                 <div className="mb-6">
-                  <div className="flex justify-between mb-2">
-                    <label
-                      htmlFor="password"
-                      className="text-sm text-gray-600 dark:text-gray-400"
+                  <label
+                    htmlFor="confirmpassword"
+                    className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
+                  >
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmpassword"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Confirm Password"
+                      value={confirmpassword}
+                      onChange={(e) => setconfirmpassword(e.target.value)}
+                      className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2
+                 text-gray-400 text-sm hover:text-gray-200"
                     >
-                      Confirm Password
-                    </label>
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
                   </div>
-                  <input
-                    type="password"
-                    id="password"
-                    placeholder="Your Password"
-                    value={confirmpassword}
-                    onChange={(e) => setconfirmpassword(e.target.value)}
-                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
-                  ></input>
                 </div>
 
                 {error && (
