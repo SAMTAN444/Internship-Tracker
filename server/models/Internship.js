@@ -22,9 +22,10 @@ const internshipSchema = new mongoose.Schema (
             enum: ["Applied", "OA", "Interview", "Offer", "Rejected"],
             default: "Applied",
         },
-        location: {
+        cycle: {
             type: String,
-            trim: true,
+            enum: ["Spring", "Summer", "Fall", "Winter", "SixMonth"],
+            required: true,
         },
         appliedAt: {
             type: Date,
