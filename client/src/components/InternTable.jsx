@@ -59,7 +59,7 @@ export default function InternTable({ internships }) {
                     }`}
                   >
                     {intern.cycle === "SixMonth"
-                      ? "6-Month"
+                      ? "6-MONTH"
                       : intern.cycle.toUpperCase()}
                   </span>
                 </td>

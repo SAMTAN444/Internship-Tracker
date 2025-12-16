@@ -31,6 +31,10 @@ const internshipSchema = new mongoose.Schema (
             type: Date,
             default: Date.now,
         },
+        applicationLink: {
+            type: String,
+            trim: true,
+        },
         notes: {
             type: String,
         },
