@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { MoreHorizontal, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { FileText } from "lucide-react";
 
-export default function InternTable({ internships }) {
+export default function InternTable({ internships, onEdit, onDelete }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
     Summer: "bg-yellow-500/15 text-yellow-300",
@@ -11,14 +12,24 @@ export default function InternTable({ internships }) {
   };
 
   const [selectedNotes, setSelectedNotes] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpenMenuId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="bg-gray-900/60 backdrop-blur border border-gray-700/60 rounded-xl shadow-lg">
       {/* Table Header */}
       <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60">
-        <h2 className="text-3xl font-semibold tracking-wide">
-          Internships
-        </h2>
+        <h2 className="text-3xl font-semibold tracking-wide">Internships</h2>
         <p className="text-xl text-gray-400">
           Track and manage your applications
         </p>
@@ -34,7 +45,7 @@ export default function InternTable({ internships }) {
               <th className="px-6 py-4 text-left text-sm">Cycle</th>
               <th className="px-6 py-4 text-left text-sm">Date Applied</th>
               <th className="px-6 py-4 text-left text-sm">Status</th>
-              <th className="px-6 py-4 text-left text-sm">Notes</th>
+              <th className="px-6 py-4 text-left text-sm">Actions</th>
             </tr>
           </thead>
 
@@ -49,8 +60,12 @@ export default function InternTable({ internships }) {
 
             {internships.map((intern) => (
               <tr key={intern._id} className="hover:bg-gray-700/40 transition">
-                <td className="px-6 py-5 text-gray-100 font-semibold text-lg">{intern.company}</td>
-                <td className="px-6 py-5 text-gray-300 text-base">{intern.role}</td>
+                <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
+                  {intern.company}
+                </td>
+                <td className="px-6 py-5 text-gray-300 text-base">
+                  {intern.role}
+                </td>
                 <td className="px-6 py-5">
                   <span
                     className={`px-3 py-1.5 text-sm font-medium rounded-md ${
@@ -69,17 +84,61 @@ export default function InternTable({ internships }) {
                     {intern.status.toUpperCase()}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-gray-300">
-                  {intern.notes ? (
-                    <button
-                      onClick={() => setSelectedNotes(intern)}
-                      className="p-2 rounded-md hover:bgg-gray-700/50 text-gray-400 hover:text-gray-200 transition"
-                      title="View Notes"
+                <td className="px-6 py-4 text-right relative">
+                  <button
+                    onClick={() =>
+                      setOpenMenuId(
+                        openMenuId === intern._id ? null : intern._id
+                      )
+                    }
+                    className="p-2 rounded-lg hover:bg-gray-700"
+                  >
+                    <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                  </button>
+
+                  {openMenuId === intern._id && (
+                    <div
+                      ref={menuRef}
+                      className="absolute right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
                     >
-                      <FileText size={20} />
-                    </button>
-                  ) : (
-                    <span className="text-gray-500">-</span>
+
+                      {/* Job link — conditional */}
+                      {intern.applicationLink && (
+                        <a
+                          href={intern.applicationLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                        >
+                          <ExternalLink className="w-4 h-4 text-blue-400" />
+                          Job Link
+                        </a>
+                      )}
+
+                      {/* Edit */}
+                      <button
+                        onClick={() => {
+                          onEdit(intern);
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
+                      >
+                        <Pencil className="w-4 h-4 text-green-400" />
+                        Edit
+                      </button>
+
+                      {/* Delete */}
+                      <button
+                        onClick={() => {
+                          onDelete(intern._id);
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>

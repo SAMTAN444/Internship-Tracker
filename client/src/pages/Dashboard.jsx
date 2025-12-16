@@ -6,6 +6,7 @@ import robotImage from "../assets/robotimage.png";
 
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
+  const [editing, setEditing] = useState(null);
 
   const addInternship = async (formData) => {
     try {
@@ -22,6 +23,17 @@ export default function Dashboard() {
     } catch (err) {
       console.error(err);
       alert("Faield to add internship");
+    }
+  };
+
+  const deleteInternship = async (id) => {
+    try {
+      await API.delete(`/api/internships/${id}`);
+
+      setInternships((prev) => prev.filter((intern) => intern._id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete internship");
     }
   };
 
@@ -53,7 +65,9 @@ export default function Dashboard() {
               />
             </div>
             <div className="flex justify-center">
-              <Form onSubmit={addInternship} />
+              <Form
+                onSubmit={addInternship}
+              />
             </div>
           </div>
         </div>
@@ -61,7 +75,11 @@ export default function Dashboard() {
 
       <main className="relative z-10 flex-1 px-6 py-6 flex justify-center">
         <div className="w-full max-w-7xl">
-          <InternTable internships={internships} />
+          <InternTable
+            internships={internships}
+            onEdit={setEditing}
+            onDelete={deleteInternship}
+          />
         </div>
       </main>
     </div>
