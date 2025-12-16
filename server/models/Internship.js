@@ -24,7 +24,7 @@ const internshipSchema = new mongoose.Schema (
         },
         cycle: {
             type: String,
-            enum: ["Spring", "Summer", "Fall", "Winter", "SixMonth"],
+            enum: ["Spring", "Summer", "Fall", "Winter", "6-Month"],
             required: true,
         },
         appliedAt: {

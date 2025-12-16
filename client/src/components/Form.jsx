@@ -3,13 +3,25 @@ import { Leaf, Sun, Wind, Snowflake, CalendarClock } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
-export default function AddApplication() {
+function Field({ label, children }) {
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          {label}
+        </label>
+        {children}
+      </div>
+    );
+  }
+
+export default function Form({ onSubmit }) {
   const [form, setForm] = useState({
     company: "",
     role: "",
     link: "",
     cycle: "",
     appliedAt: "",
+    notes: "",
   });
 
   const CYCLES = [
@@ -70,12 +82,23 @@ export default function AddApplication() {
       link: "",
       cycle: "",
       appliedAt: "",
+      notes: "",
     });
   }
 
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!form.company || !form.role || !form.cycle) {
+        alert("Please fill in required fields");
+        return;
+    }
+    onSubmit(form);
+  }
+
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-900 to-slate-950 flex items-center justify-center px-6">
-      <div className="w-full max-w-xl bg-gray-900/70 backdrop-blur border border-gray-700/60 rounded-2xl shadow-2xl p-8">
+    <div className="w-full">
+      <div className="w-full bg-gray-900/70 backdrop-blur border border-gray-700/60 rounded-2xl shadow-2xl p-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-10">
           <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 text-4xl font-semibold">
@@ -85,7 +108,7 @@ export default function AddApplication() {
             Add New Application
           </h2>
         </div>
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <Field label="Company Name">
             <input
               name="company"
@@ -205,7 +228,7 @@ export default function AddApplication() {
               </button>
               {dateOpen && (
                 <div
-                  className="absolute z-30 mt-2 rounded-xl border border-gray-700 bg-gray-900 shadow-xl p-4"
+                  className="absolute z-50 mt-2 rounded-xl border border-gray-700 bg-gray-900 shadow-xl p-4"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <DayPicker
@@ -249,14 +272,5 @@ export default function AddApplication() {
     </div>
   );
 
-  function Field({ label, children }) {
-    return (
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          {label}
-        </label>
-        {children}
-      </div>
-    );
-  }
+  
 }

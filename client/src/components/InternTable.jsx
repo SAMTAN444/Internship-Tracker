@@ -7,7 +7,7 @@ export default function InternTable({ internships }) {
     Summer: "bg-yellow-500/15 text-yellow-300",
     Fall: "bg-orange-500/15 text-orange-300",
     Winter: "bg-blue-500/15 text-blue-300",
-    SixMonth: "bg-purple-500/15 text-purple-300",
+    "6-Month": "bg-purple-500/15 text-purple-300",
   };
 
   const [selectedNotes, setSelectedNotes] = useState(null);
@@ -58,9 +58,7 @@ export default function InternTable({ internships }) {
                       "bg-gray-600/30 text-gray-300"
                     }`}
                   >
-                    {intern.cycle === "SixMonth"
-                      ? "6-MONTH"
-                      : intern.cycle.toUpperCase()}
+                    {intern.cycle.toUpperCase()}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-gray-300">
