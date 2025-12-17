@@ -3,6 +3,8 @@ import API from "../services/api";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
 import robotImage from "../assets/robotimage.png";
+import EditInternshipModal from "../components/EditInternshipModal";
+import Footer from "../components/Footer";
 
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
@@ -20,9 +22,11 @@ export default function Dashboard() {
         notes: formData.notes,
       });
       setInternships((prev) => [data, ...prev]);
+      return true;
     } catch (err) {
       console.error(err);
       alert("Faield to add internship");
+      return false;
     }
   };
 
@@ -53,6 +57,21 @@ export default function Dashboard() {
         <h1 className="text-2xl font-semibold tracking-wide">Dashboard</h1>
         <p className="text-m text-gray-400">Overview of your data</p>
       </header>
+      
+      {editing && (
+        <EditInternshipModal
+          intern={editing}
+          onClose={() => setEditing(null)}
+          onSave={(updated) => {
+            setInternships((prev) => 
+              prev.map((i) => 
+                i._id === updated._id ? updated : i
+            )
+            );
+            setEditing(null);
+          }}
+        />
+      )}
 
       <section className="relative z-50 px-6 py-10 flex justify-center">
         <div className="w-full max-w-7xl  rounded-xl">
@@ -65,9 +84,7 @@ export default function Dashboard() {
               />
             </div>
             <div className="flex justify-center">
-              <Form
-                onSubmit={addInternship}
-              />
+              <Form onSubmit={addInternship} />
             </div>
           </div>
         </div>
@@ -82,6 +99,8 @@ export default function Dashboard() {
           />
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -11,6 +11,14 @@ export default function InternTable({ internships, onEdit, onDelete }) {
     "6-Month": "bg-purple-500/15 text-purple-300",
   };
 
+  const CYCLE_META = {
+    Spring: { label: "Spring", desc: "Jan–Apr" },
+    Summer: { label: "Summer", desc: "May–Aug" },
+    Fall: { label: "Fall", desc: "Sept–Dec" },
+    Winter: { label: "Winter", desc: "Dec–Jan" },
+    "6-Month": { label: "6-Month", desc: "" },
+  };
+
   const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
@@ -68,20 +76,22 @@ export default function InternTable({ internships, onEdit, onDelete }) {
                 </td>
                 <td className="px-6 py-5">
                   <span
-                    className={`px-3 py-1.5 text-sm font-medium rounded-md ${
-                      cycleStyles[intern.cycle] ||
-                      "bg-gray-600/30 text-gray-300"
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${
+                      cycleStyles[intern.cycle]
                     }`}
                   >
-                    {intern.cycle.toUpperCase()}
+                    <span className="text-sm font-semibold">
+                      {CYCLE_META[intern.cycle]?.label}
+                    </span>
                   </span>
                 </td>
+
                 <td className="px-6 py-4 text-gray-300">
                   {new Date(intern.appliedAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-3 py-1.5 text-sm rounded-full bg-blue-500/15 text-blue-300 font-medium">
-                    {intern.status.toUpperCase()}
+                    {intern.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right relative">
@@ -99,9 +109,8 @@ export default function InternTable({ internships, onEdit, onDelete }) {
                   {openMenuId === intern._id && (
                     <div
                       ref={menuRef}
-                      className="absolute right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
+                      className="fixed right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
                     >
-
                       {/* Job link — conditional */}
                       {intern.applicationLink && (
                         <a

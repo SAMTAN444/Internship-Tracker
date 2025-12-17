@@ -1,34 +1,35 @@
 import { useState, useRef, useEffect } from "react";
-import { Leaf, Sun, Wind, Snowflake, CalendarClock } from "lucide-react";
+import { X, CalendarClock, Leaf, Sun, Wind, Snowflake } from "lucide-react";
 import { DayPicker } from "react-day-picker";
+import API from "../services/api";
 import "react-day-picker/dist/style.css";
 
-function Field({ label, children }) {
-    return (
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          {label}
-        </label>
-        {children}
-      </div>
-    );
-  }
-
-export default function Form({ onSubmit }) {
+export default function EditInternshipModal({ intern, onClose, onSave }) {
   const [form, setForm] = useState({
-    company: "",
-    role: "",
-    link: "",
-    cycle: "",
-    appliedAt: "",
-    notes: "",
+    company: intern.company,
+    role: intern.role,
+    link: intern.applicationLink || "",
+    cycle: intern.cycle,
+    appliedAt: intern.appliedAt,
+    notes: intern.notes || "",
   });
+
+  const [cycleOpen, setCycleOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
+  const cycleRef = useRef(null);
+  const dateRef = useRef(null);
+  const modalRef = useRef(null);
 
   const CYCLES = [
     { value: "Spring", label: "Spring (Jan-Apr)", desc: "Jan–Apr", icon: Leaf },
     { value: "Summer", label: "Summer (May-Aug)", desc: "May–Aug", icon: Sun },
     { value: "Fall", label: "Fall (Sept-Dec)", desc: "Sept–Dec", icon: Wind },
-    { value: "Winter", label: "Winter (Dec-Jan)", desc: "Dec–Jan", icon: Snowflake },
+    {
+      value: "Winter",
+      label: "Winter (Dec-Jan)",
+      desc: "Dec–Jan",
+      icon: Snowflake,
+    },
     {
       value: "6-Month",
       label: "6-Month",
@@ -37,32 +38,34 @@ export default function Form({ onSubmit }) {
     },
   ];
 
-  const cycleStyles = {
-    Spring: "bg-green-500/15 text-green-300",
-    Summer: "bg-yellow-500/15 text-yellow-300",
-    Fall: "bg-orange-500/15 text-orange-300",
-    Winter: "bg-blue-500/15 text-blue-300",
-    "6-Month": "bg-purple-500/15 text-purple-300",
-  };
-
   const cycleIconStyles = {
     Spring: "text-green-400",
     Summer: "text-yellow-400",
     Fall: "text-orange-400",
     Winter: "text-blue-400",
+    "6-Month": "text-purple-300",
+  };
+
+  const cycleStyles = {
+    Spring: "bg-green-500/15 text-green-300",
+    Summer: "bg-yellow-500/15 text-yellow-300",
+    Fall: "bg-orange-500/15 text-orange-300",
+    Winter: "bg-blue-500/15 text-blue-300",
     "6-Month": "text-purple-400",
   };
 
-  const cycleRef = useRef(null);
-  const dateRef = useRef(null);
-  const [cycleOpen, setCycleOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
-
   useEffect(() => {
     function handleClickOutside(e) {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        onClose();
+      }
+
+      // Close cycle dropdown
       if (cycleRef.current && !cycleRef.current.contains(e.target)) {
         setCycleOpen(false);
       }
+
+      // Close date picker
       if (dateRef.current && !dateRef.current.contains(e.target)) {
         setDateOpen(false);
       }
@@ -71,80 +74,76 @@ export default function Form({ onSubmit }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
-  function handleReset(e) {
-    setForm({
-      company: "",
-      role: "",
-      link: "",
-      cycle: "",
-      appliedAt: "",
-      notes: "",
-    });
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!form.company || !form.role || !form.cycle) {
-        alert("Please fill in required fields");
-        return;
+  const handleSubmit = async () => {
+    try {
+      const { data } = await API.put(`/api/internships/${intern._id}`, {
+        company: form.company,
+        role: form.role,
+        cycle: form.cycle,
+        appliedAt: form.appliedAt,
+        applicationLink: form.link,
+        notes: form.notes,
+      });
+      onSave(data);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update internship");
     }
-    const success= await onSubmit(form);
-
-    if (success) {
-      handleReset();
-      setCycleOpen(false);
-      setDateOpen(false);
-    }
-  }
+  };
 
   return (
-    <div className="w-full">
-      <div className="w-full bg-gray-900/70 backdrop-blur border border-gray-700/60 rounded-2xl shadow-2xl p-8">
+    <div className="fixed inset-0 z-999 flex items-center justify-center bg-black-60 backdrop-blur-sm">
+      <div
+        ref={modalRef}
+        className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-8 relative"
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+        >
+          <X />
+        </button>
+
         {/* Header */}
-        <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 text-4xl font-semibold">
-            +
-          </div>
+        <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-100">
-            Add New Application
+            Edit Application
           </h2>
+          <p className="text-gray-400 text-sm">
+            Update your application details below
+          </p>
         </div>
-        <form className="space-y-6" onSubmit={handleSubmit}>
+
+        <div className="space-y-6">
+          {/* Company */}
           <Field label="Company Name">
             <input
-              name="company"
               value={form.company}
-              onChange={handleChange}
-              placeholder="e.g. Google, Bloomberg, Apple"
+              onChange={(e) => setForm({ ...form, company: e.target.value })}
               className="input-dark"
             />
           </Field>
 
+          {/* Role */}
           <Field label="Position">
             <input
-              name="role"
               value={form.role}
-              onChange={handleChange}
-              placeholder="e.g. Software Engineer Intern"
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
               className="input-dark"
             />
           </Field>
 
+          {/* Link */}
           <Field label="Job Link (optional)">
             <input
-              name="link"
               value={form.link}
-              onChange={handleChange}
-              placeholder="https://careers.company.com/job-posting"
+              onChange={(e) => setForm({ ...form, link: e.target.value })}
               className="input-dark"
             />
           </Field>
 
+          {/* Cycle */}
           <Field label="Time Period">
             <div ref={cycleRef} className="relative">
               <button
@@ -161,12 +160,14 @@ export default function Form({ onSubmit }) {
                     const selected = CYCLES.find((c) => c.value === form.cycle);
                     const Icon = selected.icon;
                     const cycleStyle = cycleStyles[form.cycle];
+                    const iconStyle = cycleIconStyles[form.cycle];
+
                     return (
                       <span
                         className={`flex items-center gap-2 px-3 py-1 rounded-md ${cycleStyle}`}
                       >
-                        <Icon className="w-5 h-5" />
-                        <span className="text-m font-medium">
+                        <Icon className={`w-5 h-5 ${iconStyle}`} />
+                        <span className="text-sm font-medium">
                           {selected.label}
                         </span>
                       </span>
@@ -182,10 +183,7 @@ export default function Form({ onSubmit }) {
               </button>
 
               {cycleOpen && (
-                <div
-                  className="absolute z-20 mt-2 w-full rounded-xl bg-gray-800 border border-gray-700 shadow-lg overflow-hidden"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="absolute mt-2 w-full bg-gray-800 border border-gray-700 rounded-xl z-50">
                   {CYCLES.map((c) => (
                     <button
                       key={c.value}
@@ -212,71 +210,46 @@ export default function Form({ onSubmit }) {
             </div>
           </Field>
 
+          {/* Date */}
           <Field label="Date Applied">
             <div ref={dateRef} className="relative">
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDateOpen(!dateOpen);
-                  setCycleOpen(false);
-                }}
-                className="input-dark flex items-center gap-3 text-gray-300"
+                onClick={() => setDateOpen(!dateOpen)}
+                className="input-dark flex items-center gap-3"
               >
                 <CalendarClock className="w-5 h-5 text-blue-400" />
-                {form.appliedAt
-                  ? new Date(form.appliedAt).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "Select date"}
+                {new Date(form.appliedAt).toLocaleDateString("en-GB")}
               </button>
+
               {dateOpen && (
-                <div
-                  className="absolute bottom-full mb-2 bg-gray-900 border border-gray-700 rounded-xl p-4 z-50"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="absolute bottom-full mb-2 bg-gray-900 border border-gray-700 rounded-xl p-4 z-50">
                   <DayPicker
                     mode="single"
-                    selected={
-                      form.appliedAt ? new Date(form.appliedAt) : undefined
-                    }
+                    selected={new Date(form.appliedAt)}
                     onSelect={(date) => {
-                      if (!date) return;
                       setForm({
                         ...form,
                         appliedAt: date.toISOString(),
                       });
                       setDateOpen(false);
                     }}
-                  ></DayPicker>
+                  />
                 </div>
               )}
             </div>
           </Field>
-
-          {/* ACTIONS */}
-          <div className="flex items-center justify-between pt-6">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="px-6 py-2 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 font-medium"
-            >
-              Reset Form
-            </button>
-
-            <button
-              type="submit"
-              className="px-8 py-2 rounded-lg bg-blue-500/20 text-blue-400 font-semibold hover:bg-blue-500/3"
-            >
-              Add
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
+}
 
-  
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="block text-sm text-gray-400 mb-2">{label}</label>
+      {children}
+    </div>
+  );
 }
