@@ -5,6 +5,7 @@ import Form from "../components/Form";
 import robotImage from "../assets/robotimage.png";
 import EditInternshipModal from "../components/EditInternshipModal";
 import Footer from "../components/Footer";
+import logo from "../assets/logo.png";
 
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
@@ -51,11 +52,29 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col">
+    <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
-      <header className="px-14 py-6 border-b border-gray-800 bg-gray-700 rounded">
-        <h1 className="text-2xl font-semibold tracking-wide">Dashboard</h1>
-        <p className="text-m text-gray-400">Overview of your data</p>
+      <header className="px-14 py-5 border-b border-gray-800 bg-gray-700 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <img src={logo}
+          alt="Trackly Logo"
+          className="w-12 h-12 opacity-90">
+          </img>
+          <span className="text-2xl font-semibold tracking-wide">
+            Trackly
+          </span>
+        </div>
+
+        <div className="flex items-center gap-6">
+          <span className="text-gray-300 text-2xl">
+            Hello, <span className="font-medium text-gray-100">Samuel</span>
+          </span>
+
+          <button 
+            className="px-4 py-2 rounded-lg text-m font-bold bg-red-700 text-white hover:bg-red-600 transition"
+            onClick={() => console.log("logout")}
+          >Logout</button>
+        </div>
       </header>
       
       {editing && (
