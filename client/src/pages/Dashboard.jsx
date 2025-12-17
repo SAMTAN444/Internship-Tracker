@@ -13,6 +13,8 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(null);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [statusToUpdate, setStatusToUpdate] = useState("Applied");
 
   const addInternship = async (formData) => {
     try {
@@ -45,19 +47,38 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout =() => {
+  const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
-  }
+  };
+
+  const handleBulkUpdate = async () => {
+    try {
+      await API.put("/api/internships/bulk-status", {
+        ids: selectedIds,
+        status: statusToUpdate,
+      });
+
+      setInternships((prev) =>
+        prev.map((i) =>
+          selectedIds.includes(i._id) ? { ...i, status: statusToUpdate } : i
+        )
+      );
+      setSelectedIds([]);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    }
+  };
 
   useEffect(() => {
     API.get("/api/auth/me")
-    .then(res => setUser(res.data))
-    .catch((() => {
-      setUser(null);
-      navigate("/login");
-    }))
-  }, [navigate])
+      .then((res) => setUser(res.data))
+      .catch(() => {
+        setUser(null);
+        navigate("/login");
+      });
+  }, [navigate]);
 
   useEffect(() => {
     API.get("/api/internships")
@@ -68,41 +89,45 @@ export default function Dashboard() {
       });
   }, []);
 
+  
+
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
       <header className="px-14 py-5 border-b border-gray-800 bg-gray-700 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={logo}
-          alt="Trackly Logo"
-          className="w-12 h-12 opacity-90">
-          </img>
-          <span className="text-2xl font-semibold tracking-wide">
-            Trackly
-          </span>
+          <img
+            src={logo}
+            alt="Trackly Logo"
+            className="w-12 h-12 opacity-90"
+          ></img>
+          <span className="text-2xl font-semibold tracking-wide">Trackly</span>
         </div>
 
         <div className="flex items-center gap-6">
           <span className="text-gray-300 text-2xl">
-            Hello, <span className="font-medium text-gray-100">{user?.name || "User"}</span>
+            Hello,{" "}
+            <span className="font-medium text-gray-100">
+              {user?.name || "User"}
+            </span>
           </span>
 
-          <button 
+          <button
             className="px-4 py-2 rounded-lg text-m font-bold bg-red-700 text-white hover:bg-red-600 transition"
             onClick={handleLogout}
-          >Logout</button>
+          >
+            Logout
+          </button>
         </div>
       </header>
-      
+
       {editing && (
         <EditInternshipModal
           intern={editing}
           onClose={() => setEditing(null)}
           onSave={(updated) => {
-            setInternships((prev) => 
-              prev.map((i) => 
-                i._id === updated._id ? updated : i
-            )
+            setInternships((prev) =>
+              prev.map((i) => (i._id === updated._id ? updated : i))
             );
             setEditing(null);
           }}
@@ -130,6 +155,11 @@ export default function Dashboard() {
         <div className="w-full max-w-7xl">
           <InternTable
             internships={internships}
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+            statusToUpdate={statusToUpdate}
+            setStatusToUpdate={setStatusToUpdate}
+            onBulkUpdate={handleBulkUpdate}
             onEdit={setEditing}
             onDelete={deleteInternship}
           />

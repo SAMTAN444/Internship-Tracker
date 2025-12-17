@@ -4,10 +4,13 @@ import {
     getInternships,
     updateInternship,
     deleteInternship,
+    updateBulkStatus,
 } from "../controllers/internshipController.js"
 import { protect } from "../middleware/authMiddleware.js"
 
 const router = express.Router();
+
+router.put("/bulk-status", protect, updateBulkStatus);
 
 router.route("/")
     .post(protect, createInternship)

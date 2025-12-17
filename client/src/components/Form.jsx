@@ -107,7 +107,7 @@ export default function Form({ onSubmit }) {
       <div className="w-full bg-gray-900/70 backdrop-blur border border-gray-700/60 rounded-2xl shadow-2xl p-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 text-4xl font-semibold">
+          <div className="w-12 h-12 rounded-xl bg-blue-700 flex items-center justify-center text-white text-4xl font-semibold">
             +
           </div>
           <h2 className="text-2xl font-semibold text-gray-100">
@@ -268,7 +268,7 @@ export default function Form({ onSubmit }) {
 
             <button
               type="submit"
-              className="px-8 py-2 rounded-lg bg-blue-500/20 text-blue-400 font-semibold hover:bg-blue-500/3"
+              className="px-8 py-2 rounded-lg bg-blue-700 text-white font-semibold hover:bg-blue-800"
             >
               Add
             </button>

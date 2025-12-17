@@ -2,7 +2,16 @@ import { MoreHorizontal, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { FileText } from "lucide-react";
 
-export default function InternTable({ internships, onEdit, onDelete }) {
+export default function InternTable({
+  internships,
+  selectedIds,
+  setSelectedIds,
+  statusToUpdate,
+  setStatusToUpdate,
+  onBulkUpdate,
+  onEdit,
+  onDelete,
+}) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
     Summer: "bg-yellow-500/15 text-yellow-300",
@@ -23,6 +32,20 @@ export default function InternTable({ internships, onEdit, onDelete }) {
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
 
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === internships.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(internships.map((i) => i._id));
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -36,11 +59,47 @@ export default function InternTable({ internships, onEdit, onDelete }) {
   return (
     <div className="bg-gray-900/60 backdrop-blur border border-gray-700/60 rounded-xl shadow-lg">
       {/* Table Header */}
-      <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60">
-        <h2 className="text-3xl font-semibold tracking-wide">Internships</h2>
-        <p className="text-xl text-gray-400">
-          Track and manage your applications
-        </p>
+
+      <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60 flex items-start justify-between">
+        {/* Left: title */}
+        <div>
+          <h2 className="text-3xl font-semibold tracking-wide">Internships</h2>
+          <p className="text-xl text-gray-400">
+            Track and manage your applications
+          </p>
+        </div>
+
+        {/* Right: bulk actions */}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3">
+            <select
+              value={statusToUpdate}
+              onChange={(e) => setStatusToUpdate(e.target.value)}
+              className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-m font-semibold text-gray-200"
+            >
+              <option value="Applied">Applied</option>
+              <option value="OA">OA</option>
+              <option value="Interview">Interview</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+
+            <button 
+              disabled={selectedIds.length === 0}
+              onClick={onBulkUpdate}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition 
+                ${
+                  selectedIds.length === 0
+                  ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+                  : "bg-blue-700 text-white hover:bg-blue-800"
+                }`}
+            >Update Status
+            </button>
+          </div>
+          <span className="text-xs text-gray-400">
+            {selectedIds.length} selected
+          </span>
+        </div>
       </div>
 
       {/* Table */}
@@ -48,6 +107,17 @@ export default function InternTable({ internships, onEdit, onDelete }) {
         <table className="min-w-full text-base">
           <thead className="bg-gray-800/80 text-gray-300 uppercase tracking-wider text-sm">
             <tr className="odd:bg-gray-800/40 even:bg-transparent hover:bg-gray-700/40 transition">
+              <th className="px-6 py-4 text-center w-12">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
+                  checked={
+                    internships.length > 0 &&
+                    selectedIds.length === internships.length
+                  }
+                  onChange={toggleSelectAll}
+                />
+              </th>
               <th className="px-6 py-4 text-left text-sm">Company</th>
               <th className="px-6 py-4 text-left text-sm">Role</th>
               <th className="px-6 py-4 text-left text-sm">Cycle</th>
@@ -68,6 +138,14 @@ export default function InternTable({ internships, onEdit, onDelete }) {
 
             {internships.map((intern) => (
               <tr key={intern._id} className="hover:bg-gray-700/40 transition">
+                <td className="px-6 py-5 text-center">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
+                    checked={selectedIds.includes(intern._id)}
+                    onChange={() => toggleSelect(intern._id)}
+                  />
+                </td>
                 <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
                   {intern.company}
                 </td>
