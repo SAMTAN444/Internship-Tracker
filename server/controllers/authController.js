@@ -87,3 +87,12 @@ export const loginUser = async (req, res) => {
         token: generateToken(user._id)
     });
 };
+
+// @route GET/api/auth/me
+export const getMe = async (req, res) => {
+    res.json({
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+    });
+}

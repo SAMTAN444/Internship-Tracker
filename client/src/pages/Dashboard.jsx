@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
@@ -10,6 +11,8 @@ import logo from "../assets/logo.png";
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const addInternship = async (formData) => {
     try {
@@ -42,6 +45,20 @@ export default function Dashboard() {
     }
   };
 
+  const handleLogout =() => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  }
+
+  useEffect(() => {
+    API.get("/api/auth/me")
+    .then(res => setUser(res.data))
+    .catch((() => {
+      setUser(null);
+      navigate("/login");
+    }))
+  }, [navigate])
+
   useEffect(() => {
     API.get("/api/internships")
       .then((res) => setInternships(res.data))
@@ -67,12 +84,12 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-6">
           <span className="text-gray-300 text-2xl">
-            Hello, <span className="font-medium text-gray-100">Samuel</span>
+            Hello, <span className="font-medium text-gray-100">{user?.name || "User"}</span>
           </span>
 
           <button 
             className="px-4 py-2 rounded-lg text-m font-bold bg-red-700 text-white hover:bg-red-600 transition"
-            onClick={() => console.log("logout")}
+            onClick={handleLogout}
           >Logout</button>
         </div>
       </header>
