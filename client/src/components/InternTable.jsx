@@ -30,6 +30,14 @@ export default function InternTable({
     "6-Month": { label: "6-Month", desc: "" },
   };
 
+  const statusStyles = {
+    Applied: "bg-blue-600 text-white",
+    OA: "bg-purple-600 text-white",
+    Interview: "bg-yellow-600 text-white",
+    Offer: "bg-green-600 text-white",
+    Rejected: "bg-red-500 text-white",
+  };
+
   const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
@@ -166,7 +174,9 @@ export default function InternTable({
             {filteredInternships.length === 0 && (
               <tr>
                 <td colSpan="7">
-                  <div className="flex justify-center items-center h-48 text-gray-400 text-lg">No internships match your search</div>
+                  <div className="flex justify-center items-center h-48 text-gray-400 text-lg">
+                    No internships match your search
+                  </div>
                 </td>
               </tr>
             )}
@@ -210,7 +220,7 @@ export default function InternTable({
                   {new Date(intern.appliedAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
-                  <span className="px-3 py-1.5 text-sm rounded-full bg-blue-500/15 text-blue-300 font-medium">
+                  <span className={`px-3 py-1.5 text-sm rounded-full font-medium ${statusStyles[intern.status]}`}>
                     {intern.status}
                   </span>
                 </td>
@@ -252,7 +262,7 @@ export default function InternTable({
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
                       >
-                        <Pencil className="w-4 h-4 text-green-400" />
+                        <Pencil className="w-4 h-4 text-teal-600" />
                         Edit
                       </button>
 
@@ -264,7 +274,7 @@ export default function InternTable({
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 text-red-700" />
                         Delete
                       </button>
                     </div>

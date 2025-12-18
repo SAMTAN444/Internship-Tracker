@@ -89,22 +89,12 @@ export default function Dashboard() {
       });
   }, []);
 
-  
-
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
-      <header className="px-14 py-5 border-b border-gray-800 bg-gray-700 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img
-            src={logo}
-            alt="Trackly Logo"
-            className="w-12 h-12 opacity-90"
-          ></img>
-          <span className="text-2xl font-semibold tracking-wide">Trackly</span>
-        </div>
-
-        <div className="flex items-center gap-6">
+      <header className="w-full border-b border-gray-800 bg-gray-700 flex justify-center">
+        <div className="w-full max-w-7xl flex items-center justify-between px-14 py-5">
+          {/* LEFT — Greeting */}
           <span className="text-gray-300 text-2xl">
             Hello,{" "}
             <span className="font-medium text-gray-100">
@@ -112,12 +102,26 @@ export default function Dashboard() {
             </span>
           </span>
 
-          <button
-            className="px-4 py-2 rounded-lg text-m font-bold bg-red-700 text-white hover:bg-red-600 transition"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
+          {/* RIGHT — Logo + Text + Logout */}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <img
+                src={logo}
+                alt="Trackly Logo"
+                className="w-10 h-10 opacity-90"
+              />
+              <span className="text-2xl font-semibold tracking-wide">
+                Trackly
+              </span>
+            </div>
+
+            <button
+              className="px-4 py-2 rounded-lg text-m font-bold bg-red-700 text-white hover:bg-red-600 transition"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

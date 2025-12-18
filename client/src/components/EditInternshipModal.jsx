@@ -240,6 +240,19 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
             </div>
           </Field>
         </div>
+        <div className="mt-10 flex justify-end gap-4">
+          <button 
+            onClick={onClose}
+            className="px-5 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition font-medium"
+          >
+            Cancel
+          </button>
+
+          <button 
+          onClick={handleSubmit}
+          className="px-5 py-2 rounded-lg  font-medium bg-teal-700 hover:bg-teal-600 text-white "
+          >Save Changes</button>
+        </div>
       </div>
     </div>
   );
