@@ -3,6 +3,7 @@ import { X, CalendarClock, Leaf, Sun, Wind, Snowflake } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import API from "../services/api";
 import "react-day-picker/dist/style.css";
+import { toast } from "react-toastify";
 
 export default function EditInternshipModal({ intern, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -84,10 +85,11 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
         applicationLink: form.link,
         notes: form.notes,
       });
+      toast.success("Internship Updated");
       onSave(data);
     } catch (err) {
       console.error(err);
-      alert("Failed to update internship");
+      toast.erorr("Faield to Update Internship");
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { HiExclamationCircle } from "react-icons/hi";
+import { toast } from "react-toastify";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,8 +23,9 @@ export default function Login() {
       });
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
+      toast.success("Successfully Logged In")
     } catch (error) {
-      setError("Invalid email or password");
+      toast.error("Invalid username or password")
     } finally {
       setLoading(false);
     }

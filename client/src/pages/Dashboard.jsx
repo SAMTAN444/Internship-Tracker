@@ -7,6 +7,7 @@ import robotImage from "../assets/robotimage.png";
 import EditInternshipModal from "../components/EditInternshipModal";
 import Footer from "../components/Footer";
 import logo from "../assets/logo.png";
+import { toast } from "react-toastify";
 
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
@@ -28,10 +29,11 @@ export default function Dashboard() {
         notes: formData.notes,
       });
       setInternships((prev) => [data, ...prev]);
+      toast.success("Internship added")
       return true;
     } catch (err) {
       console.error(err);
-      alert("Faield to add internship");
+      toast.error("Failed to add internship")
       return false;
     }
   };
@@ -41,14 +43,16 @@ export default function Dashboard() {
       await API.delete(`/api/internships/${id}`);
 
       setInternships((prev) => prev.filter((intern) => intern._id !== id));
+      toast.success("Internship deleted");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete internship");
+      toast.error("Failed to delete internship")
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    toast.success("Successfully Logged Out");
     navigate("/login");
   };
 
@@ -65,9 +69,10 @@ export default function Dashboard() {
         )
       );
       setSelectedIds([]);
+      toast.success("Successfully updated internships")
     } catch (err) {
       console.error(err);
-      alert("Failed to update status");
+      toast.error("Failed to update internships")
     }
   };
 

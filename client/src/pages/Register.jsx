@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import API from "../services/api";
 import { data, useNavigate } from "react-router-dom";
 import { HiExclamationCircle } from "react-icons/hi";
+import { toast } from "react-toastify";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -18,7 +19,7 @@ export default function Register() {
     e.preventDefault();
 
     if (password !== confirmpassword) {
-      seterror("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -33,8 +34,9 @@ export default function Register() {
       });
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
+      toast.success("Successfully Logged In")
     } catch (error) {
-      seterror(error.response?.data?.message || "Registration failed");
+      toast.error(error.response?.data?.message || "Registration failed");
     } finally {
       setloading(false);
     }
