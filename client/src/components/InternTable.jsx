@@ -17,6 +17,10 @@ export default function InternTable({
   setPage,
   total,
   limit,
+  searchquery,
+  setSearchQuery,
+  searchField,
+  setSearchField,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -45,8 +49,7 @@ export default function InternTable({
   const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
-  const [searchquery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState("");
+
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
@@ -61,35 +64,8 @@ export default function InternTable({
       setSelectedIds(internships.map((i) => i._id));
     }
   };
-
-  const filteredInternships = internships.filter((intern) => {
-    const q = searchquery.toLowerCase().trim();
-
-    if (!q) return true; // no search -> return all
-
-    const searchIn = (field) => intern[field].toLowerCase().includes(q);
-
-    switch (searchField) {
-      case "Company":
-        return searchIn("company");
-      case "Role":
-        return searchIn("role");
-      case "Cycle":
-        return searchIn("cycle");
-      case "Status":
-        return searchIn("status");
-      default:
-        // default search — search across all
-        return (
-          searchIn("company") ||
-          searchIn("role") ||
-          searchIn("cycle") ||
-          searchIn("status")
-        );
-    }
-  });
-
-  const totalPages = Math.ceil(filteredInternships.length / limit);
+  
+  const totalPages = Math.ceil(total / limit);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -186,14 +162,14 @@ export default function InternTable({
           </thead>
 
           <tbody className="divide-y divide-gray-700">
-            {internships.length === 0 && (
+            {internships.length === 0 && searchquery === "" && (
               <tr>
                 <td colSpan="6" className="px-6 py-6 text-center text-gray-400">
                   No internships yet
                 </td>
               </tr>
             )}
-            {filteredInternships.length === 0 && (
+            {internships.length === 0 && searchquery !== "" && (
               <tr>
                 <td colSpan="7">
                   <div className="flex justify-center items-center h-48 text-gray-400 text-lg">
@@ -203,9 +179,7 @@ export default function InternTable({
               </tr>
             )}
 
-            {filteredInternships
-              .slice((page - 1) * limit, page * limit)
-              .map((intern) => (
+            {internships.map((intern) => (
                 <tr
                   key={intern._id}
                   className="hover:bg-gray-700/40 transition"

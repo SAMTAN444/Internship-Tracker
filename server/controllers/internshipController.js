@@ -12,29 +12,44 @@ export const createInternship = async (req, res) => {
 
 // @route GET /api/internships
 export const getInternships = async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const { page = 1, limit = 10, q = "", field = "" } = req.query;
 
-    const skip = (page-1) * limit
+    const query = { user: req.user._id };
 
-    const total = await Internship.countDocuments({ user: req.user._id });
+    // If searching
+    if (q) {
+        const searchRegex = new RegExp(q, "i");
+        if (field) {
+            query[field.toLowerCase()] = searchRegex;
+        } else {
+            query.$or = [
+                { company: searchRegex },
+                { role: searchRegex },
+                { status: searchRegex },
+                { cycle: searchRegex },
+            ];
+        }
+    }
+    const skip = (page - 1) * limit
 
-
-    const internships = await Internship.find({ user: req.user._id })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+    const [data, total] = await Promise.all([
+        Internship.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit)),
+        Internship.countDocuments(query),
+    ]);
 
     res.json({
-        data: internships,
+        data,
         total,
-        page,
-        limit,
+        page: parseInt(page),
+        limit: parseInt(limit),
     });
 };
 
 // @route PUT /api/internships/:id
-export const updateInternship = async (req,res) => {
+export const updateInternship = async (req, res) => {
     const internship = await Internship.findById(req.params.id);
 
     if (!internship) {
@@ -73,7 +88,7 @@ export const updateBulkStatus = async (req, res) => {
     }
 
     await Internship.updateMany(
-        { _id: { $in: ids }, user: req.user._id},
+        { _id: { $in: ids }, user: req.user._id },
         { status }
     );
 

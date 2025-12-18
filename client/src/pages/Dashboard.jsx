@@ -19,10 +19,12 @@ export default function Dashboard() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [total, setTotal] = useState(0);
+  const [searchquery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("");
 
   const addInternship = async (formData) => {
     try {
-       await API.post("/api/internships", {
+      await API.post("/api/internships", {
         company: formData.company,
         role: formData.role,
         cycle: formData.cycle,
@@ -99,7 +101,9 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    API.get(`/api/internships?page=${page}&limit=${limit}`)
+    API.get(
+      `/api/internships?page=${page}&limit=${limit}&q=${searchquery}&field=${searchField}`
+    )
       .then((res) => {
         setInternships(res.data.data);
         setTotal(res.data.total);
@@ -108,7 +112,7 @@ export default function Dashboard() {
         console.error(err);
         toast.error("Failed to load internships");
       });
-  }, [page]);
+  }, [page, searchquery, searchField]);
 
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
@@ -193,6 +197,10 @@ export default function Dashboard() {
             setPage={setPage}
             total={total}
             limit={limit}
+            searchquery={searchquery}
+            setSearchQuery={setSearchQuery}
+            searchField={searchField}
+            setSearchField={setSearchField}
           />
         </div>
       </main>
