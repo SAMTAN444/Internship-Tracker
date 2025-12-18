@@ -21,6 +21,8 @@ export default function Dashboard() {
   const [total, setTotal] = useState(0);
   const [searchquery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("");
+  const [sortField, setSortField] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   const addInternship = async (formData) => {
     try {
@@ -102,7 +104,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     API.get(
-      `/api/internships?page=${page}&limit=${limit}&q=${searchquery}&field=${searchField}`
+      `/api/internships?page=${page}&limit=${limit}&q=${searchquery}&field=${searchField}&sortField=${sortField}&sortOrder=${sortOrder}`
     )
       .then((res) => {
         setInternships(res.data.data);
@@ -112,7 +114,7 @@ export default function Dashboard() {
         console.error(err);
         toast.error("Failed to load internships");
       });
-  }, [page, searchquery, searchField]);
+  }, [page, searchquery, searchField, sortField, sortOrder]);
 
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
@@ -201,6 +203,10 @@ export default function Dashboard() {
             setSearchQuery={setSearchQuery}
             searchField={searchField}
             setSearchField={setSearchField}
+            sortField={sortField}
+            setSortField={setSortField}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
           />
         </div>
       </main>

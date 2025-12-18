@@ -21,6 +21,10 @@ export default function InternTable({
   setSearchQuery,
   searchField,
   setSearchField,
+  sortField,
+  setSortField,
+  sortOrder,
+  setSortOrder,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -50,7 +54,6 @@ export default function InternTable({
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
 
-
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -64,7 +67,7 @@ export default function InternTable({
       setSelectedIds(internships.map((i) => i._id));
     }
   };
-  
+
   const totalPages = Math.ceil(total / limit);
 
   useEffect(() => {
@@ -92,26 +95,51 @@ export default function InternTable({
 
         {/* Row 2 - Search + Filter + Status + Update Button */}
         <div className="flex items-center justify-between mt-6">
-          <div className="flex items-center gap-3 flex-1">
-            <input
-              type="text"
-              placeholder="Search applications..."
-              className="w-1/2 bg-gray-900 border-gray-700 rounded-lg px-4 py-2 text-gray-200 focus:outline-none text-lg"
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-            />
-            <div className="relative overflow-visible">
-              <FilterDropdown
-                value={searchField}
-                setValue={(val) => {
-                  setSearchField(val);
+          <div className="flex flex-col flex-1">
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="Search applications..."
+                className="w-1/2 bg-gray-900 border-gray-700 rounded-lg px-4 py-2 text-gray-200 focus:outline-none text-lg"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
                   setPage(1);
                 }}
               />
+              <div className="relative overflow-visible">
+                <FilterDropdown
+                  value={searchField}
+                  setValue={(val) => {
+                    setSearchField(val);
+                    setPage(1);
+                  }}
+                />
+              </div>
             </div>
+
+            {/* RESET sort button  */}
+            {/* RESET BUTTON BELOW SEARCH */}
+            <button
+              disabled={
+                sortField === "" && searchquery === "" && searchField === ""
+              }
+              onClick={() => {
+                setSortField("");
+                setSortOrder("asc");
+                setSearchQuery("");
+                setSearchField("");
+                setPage(1);
+              }}
+              className={`mt-2 px-3 py-1.5 rounded-md text-sm font-semibold transition self-start ${
+                sortField === "" && searchquery === "" && searchField === ""
+                  ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+                  : "bg-blue-700 text-white hover:bg-blue-600"
+              }`}
+            >
+              Reset
+            </button>
           </div>
+
           <div className="flex items-center gap-3">
             <StatusDropdown
               value={statusToUpdate}
@@ -154,14 +182,72 @@ export default function InternTable({
               </th>
               <th className="px-6 py-4 text-left text-sm">Company</th>
               <th className="px-6 py-4 text-left text-sm">Role</th>
-              <th className="px-6 py-4 text-left text-sm">Cycle</th>
-              <th className="px-6 py-4 text-left text-sm">Date Applied</th>
-              <th className="px-6 py-4 text-left text-sm">Status</th>
+              <th
+                className="px-6 py-4 text-left text-sm cursor-pointer select-none"
+                onClick={() => {
+                  if (sortField === "cycle") {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  } else {
+                    setSortField("cycle");
+                    setSortOrder("asc");
+                  }
+                  setPage(1);
+                }}
+              >
+                Cycle{" "}
+                {sortField === "cycle"
+                  ? sortOrder === "asc"
+                    ? "↑"
+                    : "↓"
+                  : "↕"}
+              </th>
+              <th
+                className="px-6 py-4 text-left text-sm cursor-pointer select-none"
+                onClick={() => {
+                  if (sortField === "appliedAt") {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  } else {
+                    setSortField("appliedAt");
+                    setSortOrder("asc");
+                  }
+                  setPage(1);
+                }}
+              >
+                <span className="inline-flex items-center gap-1">
+                  Date Applied{" "}
+                  {sortField === "appliedAt"
+                    ? sortOrder === "asc"
+                      ? "↑"
+                      : "↓"
+                    : "↕"}
+                </span>
+              </th>
+
+              <th
+                className="px-6 py-4 text-left text-sm cursor-pointer select-none"
+                onClick={() => {
+                  if (sortField === "status") {
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                  } else {
+                    setSortField("status");
+                    setSortOrder("asc");
+                  }
+                  setPage(1);
+                }}
+              >
+                Status{" "}
+                {sortField === "status"
+                  ? sortOrder === "asc"
+                    ? "↑"
+                    : "↓"
+                  : "↕"}
+              </th>
+
               <th className="px-6 py-4 text-left text-sm">Actions</th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="">
             {internships.length === 0 && searchquery === "" && (
               <tr>
                 <td colSpan="6" className="px-6 py-6 text-center text-gray-400">
@@ -180,106 +266,103 @@ export default function InternTable({
             )}
 
             {internships.map((intern) => (
-                <tr
-                  key={intern._id}
-                  className="hover:bg-gray-700/40 transition"
-                >
-                  <td className="px-6 py-5 text-center">
-                    <input
-                      type="checkbox"
-                      className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
-                      checked={selectedIds.includes(intern._id)}
-                      onChange={() => toggleSelect(intern._id)}
-                    />
-                  </td>
-                  <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
-                    {intern.company}
-                  </td>
-                  <td className="px-6 py-5 text-gray-300 text-base">
-                    {intern.role}
-                  </td>
-                  <td className="px-6 py-5">
-                    <span
-                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${
-                        cycleStyles[intern.cycle]
-                      }`}
-                    >
-                      <span className="text-sm font-semibold">
-                        {CYCLE_META[intern.cycle]?.label}
-                      </span>
+              <tr key={intern._id} className="hover:bg-gray-700/40 transition">
+                <td className="px-6 py-5 text-center">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
+                    checked={selectedIds.includes(intern._id)}
+                    onChange={() => toggleSelect(intern._id)}
+                  />
+                </td>
+                <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
+                  {intern.company}
+                </td>
+                <td className="px-6 py-5 text-gray-300 text-base">
+                  {intern.role}
+                </td>
+                <td className="px-6 py-5">
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${
+                      cycleStyles[intern.cycle]
+                    }`}
+                  >
+                    <span className="text-sm font-semibold">
+                      {CYCLE_META[intern.cycle]?.label}
                     </span>
-                  </td>
+                  </span>
+                </td>
 
-                  <td className="px-6 py-4 text-gray-300">
-                    {new Date(intern.appliedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1.5 text-sm rounded-full font-medium ${
-                        statusStyles[intern.status]
-                      }`}
-                    >
-                      {intern.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right relative">
-                    <button
-                      onClick={() =>
-                        setOpenMenuId(
-                          openMenuId === intern._id ? null : intern._id
-                        )
-                      }
-                      className="p-2 rounded-lg hover:bg-gray-700"
-                    >
-                      <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                    </button>
+                <td className="px-6 py-4 text-gray-300">
+                  {new Date(intern.appliedAt).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`px-3 py-1.5 text-sm rounded-full font-medium ${
+                      statusStyles[intern.status]
+                    }`}
+                  >
+                    {intern.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-right relative">
+                  <button
+                    onClick={() =>
+                      setOpenMenuId(
+                        openMenuId === intern._id ? null : intern._id
+                      )
+                    }
+                    className="p-2 rounded-lg hover:bg-gray-700"
+                  >
+                    <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                  </button>
 
-                    {openMenuId === intern._id && (
-                      <div
-                        ref={menuRef}
-                        className="fixed right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
+                  {openMenuId === intern._id && (
+                    <div
+                      ref={menuRef}
+                      className="fixed right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
+                    >
+                      {/* Job link — conditional */}
+                      {intern.applicationLink && (
+                        <a
+                          href={intern.applicationLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                        >
+                          <ExternalLink className="w-4 h-4 text-blue-400" />
+                          Job Link
+                        </a>
+                      )}
+
+                      {/* Edit */}
+                      <button
+                        onClick={() => {
+                          onEdit(intern);
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
                       >
-                        {/* Job link — conditional */}
-                        {intern.applicationLink && (
-                          <a
-                            href={intern.applicationLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
-                          >
-                            <ExternalLink className="w-4 h-4 text-blue-400" />
-                            Job Link
-                          </a>
-                        )}
+                        <Pencil className="w-4 h-4 text-teal-600" />
+                        Edit
+                      </button>
 
-                        {/* Edit */}
-                        <button
-                          onClick={() => {
-                            onEdit(intern);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
-                        >
-                          <Pencil className="w-4 h-4 text-teal-600" />
-                          Edit
-                        </button>
-
-                        {/* Delete */}
-                        <button
-                          onClick={() => {
-                            onDelete(intern._id);
-                            setOpenMenuId(null);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-700" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      {/* Delete */}
+                      <button
+                        onClick={() => {
+                          onDelete(intern._id);
+                          setOpenMenuId(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-700" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

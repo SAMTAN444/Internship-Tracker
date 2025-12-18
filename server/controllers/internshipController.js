@@ -12,7 +12,7 @@ export const createInternship = async (req, res) => {
 
 // @route GET /api/internships
 export const getInternships = async (req, res) => {
-    const { page = 1, limit = 10, q = "", field = "" } = req.query;
+    const { page = 1, limit = 10, q = "", field = "", sortField = "", sortOrder = "asc" } = req.query;
 
     const query = { user: req.user._id };
 
@@ -32,13 +32,82 @@ export const getInternships = async (req, res) => {
     }
     const skip = (page - 1) * limit
 
+    const sortOptions = {};
+    if (sortField) {
+        sortOptions[sortField] = sortOrder === "asc" ? 1 : -1;
+    } else {
+        sortOptions["createdAt"] = -1;
+    }
+
+    const cycleOrder = {
+        Spring: 1,
+        Summer: 2,
+        Fall: 3,
+        Winter: 4,
+        "6-Month": 5,
+    };
+
+    const statusOrder = {
+        Applied: 1,
+        OA: 2,
+        Interview: 3,
+        Offer: 4,
+        Rejected: 5,
+    };
+
     const [data, total] = await Promise.all([
-        Internship.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit)),
-        Internship.countDocuments(query),
+        Internship.aggregate([
+            { $match: query },
+
+            // Add custom sorting fields
+            {
+                $addFields: {
+                    cycleSort: {
+                        $switch: {
+                            branches: Object.entries(cycleOrder).map(([key, val]) => ({
+                                case: { $eq: ["$cycle", key] },
+                                then: val
+                            })),
+                            default: 99
+                        }
+                    },
+                    statusSort: {
+                        $switch: {
+                            branches: Object.entries(statusOrder).map(([key, val]) => ({
+                                case: { $eq: ["$status", key] },
+                                then: val
+                            })),
+                            default: 99
+                        }
+                    }
+                }
+            },
+
+            // Now SORT depending on what sortField is
+            {
+                $sort: {
+                    ...(sortField === "cycle"
+                        ? { cycleSort: sortOrder === "asc" ? 1 : -1 }
+                        : {}),
+                    ...(sortField === "status"
+                        ? { statusSort: sortOrder === "asc" ? 1 : -1 }
+                        : {}),
+                    ...(sortField === "appliedAt"
+                        ? { appliedAt: sortOrder === "asc" ? 1 : -1 }
+                        : {}),
+                    // default fallback sort:
+                    ...(sortField === ""
+                        ? { createdAt: -1 }
+                        : {})
+                }
+            },
+
+            { $skip: skip },
+            { $limit: parseInt(limit) }
+        ]),
+        Internship.countDocuments(query)
     ]);
+
 
     res.json({
         data,
