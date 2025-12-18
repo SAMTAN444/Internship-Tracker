@@ -268,7 +268,7 @@ export default function Form({ onSubmit }) {
 
             <button
               type="submit"
-              className="px-8 py-2 rounded-lg bg-blue-700 text-white font-semibold hover:bg-blue-800"
+              className="px-8 py-2 rounded-lg bg-blue-700 text-white font-semibold hover:bg-blue-600"
             >
               Add
             </button>

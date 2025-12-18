@@ -13,6 +13,10 @@ export default function InternTable({
   onBulkUpdate,
   onEdit,
   onDelete,
+  page,
+  setPage,
+  total,
+  limit,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -85,6 +89,8 @@ export default function InternTable({
     }
   });
 
+  const totalPages = Math.ceil(filteredInternships.length / limit);
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -115,10 +121,19 @@ export default function InternTable({
               type="text"
               placeholder="Search applications..."
               className="w-1/2 bg-gray-900 border-gray-700 rounded-lg px-4 py-2 text-gray-200 focus:outline-none text-lg"
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
             />
             <div className="relative overflow-visible">
-              <FilterDropdown value={searchField} setValue={setSearchField} />
+              <FilterDropdown
+                value={searchField}
+                setValue={(val) => {
+                  setSearchField(val);
+                  setPage(1);
+                }}
+              />
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -133,7 +148,7 @@ export default function InternTable({
                 ${
                   selectedIds.length === 0
                     ? "bg-gray-600 text-gray-300 cursor-not-allowed"
-                    : "bg-blue-700 text-white hover:bg-blue-800"
+                    : "bg-teal-700 text-white hover:bg-teal-600"
                 }`}
             >
               Update Status
@@ -171,6 +186,13 @@ export default function InternTable({
           </thead>
 
           <tbody className="divide-y divide-gray-700">
+            {internships.length === 0 && (
+              <tr>
+                <td colSpan="6" className="px-6 py-6 text-center text-gray-400">
+                  No internships yet
+                </td>
+              </tr>
+            )}
             {filteredInternships.length === 0 && (
               <tr>
                 <td colSpan="7">
@@ -180,120 +202,133 @@ export default function InternTable({
                 </td>
               </tr>
             )}
-            {internships.length === 0 && (
-              <tr>
-                <td colSpan="6" className="px-6 py-6 text-center text-gray-400">
-                  No internships yet
-                </td>
-              </tr>
-            )}
 
-            {filteredInternships.map((intern) => (
-              <tr key={intern._id} className="hover:bg-gray-700/40 transition">
-                <td className="px-6 py-5 text-center">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
-                    checked={selectedIds.includes(intern._id)}
-                    onChange={() => toggleSelect(intern._id)}
-                  />
-                </td>
-                <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
-                  {intern.company}
-                </td>
-                <td className="px-6 py-5 text-gray-300 text-base">
-                  {intern.role}
-                </td>
-                <td className="px-6 py-5">
-                  <span
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${
-                      cycleStyles[intern.cycle]
-                    }`}
-                  >
-                    <span className="text-sm font-semibold">
-                      {CYCLE_META[intern.cycle]?.label}
-                    </span>
-                  </span>
-                </td>
-
-                <td className="px-6 py-4 text-gray-300">
-                  {new Date(intern.appliedAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1.5 text-sm rounded-full font-medium ${statusStyles[intern.status]}`}>
-                    {intern.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right relative">
-                  <button
-                    onClick={() =>
-                      setOpenMenuId(
-                        openMenuId === intern._id ? null : intern._id
-                      )
-                    }
-                    className="p-2 rounded-lg hover:bg-gray-700"
-                  >
-                    <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                  </button>
-
-                  {openMenuId === intern._id && (
-                    <div
-                      ref={menuRef}
-                      className="fixed right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
+            {filteredInternships
+              .slice((page - 1) * limit, page * limit)
+              .map((intern) => (
+                <tr
+                  key={intern._id}
+                  className="hover:bg-gray-700/40 transition"
+                >
+                  <td className="px-6 py-5 text-center">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
+                      checked={selectedIds.includes(intern._id)}
+                      onChange={() => toggleSelect(intern._id)}
+                    />
+                  </td>
+                  <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
+                    {intern.company}
+                  </td>
+                  <td className="px-6 py-5 text-gray-300 text-base">
+                    {intern.role}
+                  </td>
+                  <td className="px-6 py-5">
+                    <span
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${
+                        cycleStyles[intern.cycle]
+                      }`}
                     >
-                      {/* Job link — conditional */}
-                      {intern.applicationLink && (
-                        <a
-                          href={intern.applicationLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                      <span className="text-sm font-semibold">
+                        {CYCLE_META[intern.cycle]?.label}
+                      </span>
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-4 text-gray-300">
+                    {new Date(intern.appliedAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-3 py-1.5 text-sm rounded-full font-medium ${
+                        statusStyles[intern.status]
+                      }`}
+                    >
+                      {intern.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right relative">
+                    <button
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === intern._id ? null : intern._id
+                        )
+                      }
+                      className="p-2 rounded-lg hover:bg-gray-700"
+                    >
+                      <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                    </button>
+
+                    {openMenuId === intern._id && (
+                      <div
+                        ref={menuRef}
+                        className="fixed right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
+                      >
+                        {/* Job link — conditional */}
+                        {intern.applicationLink && (
+                          <a
+                            href={intern.applicationLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                          >
+                            <ExternalLink className="w-4 h-4 text-blue-400" />
+                            Job Link
+                          </a>
+                        )}
+
+                        {/* Edit */}
+                        <button
+                          onClick={() => {
+                            onEdit(intern);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
                         >
-                          <ExternalLink className="w-4 h-4 text-blue-400" />
-                          Job Link
-                        </a>
-                      )}
+                          <Pencil className="w-4 h-4 text-teal-600" />
+                          Edit
+                        </button>
 
-                      {/* Edit */}
-                      <button
-                        onClick={() => {
-                          onEdit(intern);
-                          setOpenMenuId(null);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
-                      >
-                        <Pencil className="w-4 h-4 text-teal-600" />
-                        Edit
-                      </button>
-
-                      {/* Delete */}
-                      <button
-                        onClick={() => {
-                          onDelete(intern._id);
-                          setOpenMenuId(null);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-700" />
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
+                        {/* Delete */}
+                        <button
+                          onClick={() => {
+                            onDelete(intern._id);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-700" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
 
       {/* Footer */}
       <div className="px-6 py-4 border-t border-gray-700 flex items-center justify-between text-sm text-gray-400">
-        <span>Showing 1-2 of 50</span>
+        <span>
+          Page {page} of {totalPages}
+        </span>
         <div className="flex gap-2">
-          <button className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-800 text-sm">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-800 text-sm disabled:opacity-50"
+          >
             Prev
           </button>
-          <button className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-800 text-sm">
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-800 text-sm disabled:opacity-50"
+          >
             Next
           </button>
         </div>

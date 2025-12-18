@@ -16,10 +16,13 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [selectedIds, setSelectedIds] = useState([]);
   const [statusToUpdate, setStatusToUpdate] = useState("Applied");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
 
   const addInternship = async (formData) => {
     try {
-      const { data } = await API.post("/api/internships", {
+       await API.post("/api/internships", {
         company: formData.company,
         role: formData.role,
         cycle: formData.cycle,
@@ -28,12 +31,12 @@ export default function Dashboard() {
         applicationLink: formData.link,
         notes: formData.notes,
       });
-      setInternships((prev) => [data, ...prev]);
-      toast.success("Internship added")
+      toast.success("Internship added");
+      setPage(1);
       return true;
     } catch (err) {
       console.error(err);
-      toast.error("Failed to add internship")
+      toast.error("Failed to add internship");
       return false;
     }
   };
@@ -42,11 +45,21 @@ export default function Dashboard() {
     try {
       await API.delete(`/api/internships/${id}`);
 
-      setInternships((prev) => prev.filter((intern) => intern._id !== id));
       toast.success("Internship deleted");
+
+      const { data } = await API.get(
+        `/api/internships?page=${page}&limit=${limit}`
+      );
+
+      if (data.data.length === 0 && page > 1) {
+        setPage(page - 1);
+      } else {
+        setInternships(data.data);
+        setTotal(data.total);
+      }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete internship")
+      toast.error("Failed to delete internship");
     }
   };
 
@@ -62,17 +75,17 @@ export default function Dashboard() {
         ids: selectedIds,
         status: statusToUpdate,
       });
-
-      setInternships((prev) =>
-        prev.map((i) =>
-          selectedIds.includes(i._id) ? { ...i, status: statusToUpdate } : i
-        )
+      toast.success("Successfully updated internships");
+      const { data } = await API.get(
+        `/api/internships?page=${page}&limit=${limit}`
       );
+      setInternships(data.data);
+      setTotal(data.total);
+
       setSelectedIds([]);
-      toast.success("Successfully updated internships")
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update internships")
+      toast.error("Failed to update internships");
     }
   };
 
@@ -83,16 +96,19 @@ export default function Dashboard() {
         setUser(null);
         navigate("/login");
       });
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
-    API.get("/api/internships")
-      .then((res) => setInternships(res.data))
+    API.get(`/api/internships?page=${page}&limit=${limit}`)
+      .then((res) => {
+        setInternships(res.data.data);
+        setTotal(res.data.total);
+      })
       .catch((err) => {
         console.error(err);
-        alert("Failed to load internships");
+        toast.error("Failed to load internships");
       });
-  }, []);
+  }, [page]);
 
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
@@ -134,10 +150,12 @@ export default function Dashboard() {
         <EditInternshipModal
           intern={editing}
           onClose={() => setEditing(null)}
-          onSave={(updated) => {
-            setInternships((prev) =>
-              prev.map((i) => (i._id === updated._id ? updated : i))
+          onSave={async () => {
+            const { data } = await API.get(
+              `/api/internships?page=${page}&limit=${limit}`
             );
+            setInternships(data.data);
+            setTotal(data.total);
             setEditing(null);
           }}
         />
@@ -171,6 +189,10 @@ export default function Dashboard() {
             onBulkUpdate={handleBulkUpdate}
             onEdit={setEditing}
             onDelete={deleteInternship}
+            page={page}
+            setPage={setPage}
+            total={total}
+            limit={limit}
           />
         </div>
       </main>

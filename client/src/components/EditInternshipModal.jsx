@@ -89,7 +89,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
       onSave(data);
     } catch (err) {
       console.error(err);
-      toast.erorr("Faield to Update Internship");
+      toast.error("Faield to Update Internship");
     }
   };
 

@@ -12,8 +12,25 @@ export const createInternship = async (req, res) => {
 
 // @route GET /api/internships
 export const getInternships = async (req, res) => {
-    const internships = await Internship.find({ user: req.user._id });
-    res.json(internships);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const skip = (page-1) * limit
+
+    const total = await Internship.countDocuments({ user: req.user._id });
+
+
+    const internships = await Internship.find({ user: req.user._id })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+    res.json({
+        data: internships,
+        total,
+        page,
+        limit,
+    });
 };
 
 // @route PUT /api/internships/:id
