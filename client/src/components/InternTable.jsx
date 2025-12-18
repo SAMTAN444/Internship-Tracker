@@ -1,6 +1,8 @@
 import { MoreHorizontal, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { FileText } from "lucide-react";
+import FilterDropdown from "./FilterOptions";
+import StatusDropdown from "./StatusDropdown";
 
 export default function InternTable({
   internships,
@@ -31,6 +33,8 @@ export default function InternTable({
   const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
+  const [searchquery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("");
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
@@ -46,6 +50,33 @@ export default function InternTable({
     }
   };
 
+  const filteredInternships = internships.filter((intern) => {
+    const q = searchquery.toLowerCase().trim();
+
+    if (!q) return true; // no search -> return all
+
+    const searchIn = (field) => intern[field].toLowerCase().includes(q);
+
+    switch (searchField) {
+      case "Company":
+        return searchIn("company");
+      case "Role":
+        return searchIn("role");
+      case "Cycle":
+        return searchIn("cycle");
+      case "Status":
+        return searchIn("status");
+      default:
+        // default search — search across all
+        return (
+          searchIn("company") ||
+          searchIn("role") ||
+          searchIn("cycle") ||
+          searchIn("status")
+        );
+    }
+  });
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -60,8 +91,8 @@ export default function InternTable({
     <div className="bg-gray-900/60 backdrop-blur border border-gray-700/60 rounded-xl shadow-lg">
       {/* Table Header */}
 
-      <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60 flex items-start justify-between">
-        {/* Left: title */}
+      <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60">
+        {/* Row 1 - Title */}
         <div>
           <h2 className="text-3xl font-semibold tracking-wide">Internships</h2>
           <p className="text-xl text-gray-400">
@@ -69,41 +100,45 @@ export default function InternTable({
           </p>
         </div>
 
-        {/* Right: bulk actions */}
-        <div className="flex flex-col items-end gap-2">
+        {/* Row 2 - Search + Filter + Status + Update Button */}
+        <div className="flex items-center justify-between mt-6">
+          <div className="flex items-center gap-3 flex-1">
+            <input
+              type="text"
+              placeholder="Search applications..."
+              className="w-1/2 bg-gray-900 border-gray-700 rounded-lg px-4 py-2 text-gray-200 focus:outline-none text-lg"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="relative overflow-visible">
+              <FilterDropdown value={searchField} setValue={setSearchField} />
+            </div>
+          </div>
           <div className="flex items-center gap-3">
-            <select
+            <StatusDropdown
               value={statusToUpdate}
-              onChange={(e) => setStatusToUpdate(e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-m font-semibold text-gray-200"
-            >
-              <option value="Applied">Applied</option>
-              <option value="OA">OA</option>
-              <option value="Interview">Interview</option>
-              <option value="Offer">Offer</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-
-            <button 
+              setValue={setStatusToUpdate}
+            />
+            <button
               disabled={selectedIds.length === 0}
               onClick={onBulkUpdate}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition 
+              className={`px-4 py-2 rounded-lg text-lg font-semibold transition focus:outline-none 
                 ${
                   selectedIds.length === 0
-                  ? "bg-gray-600 text-gray-300 cursor-not-allowed"
-                  : "bg-blue-700 text-white hover:bg-blue-800"
+                    ? "bg-gray-600 text-gray-300 cursor-not-allowed"
+                    : "bg-blue-700 text-white hover:bg-blue-800"
                 }`}
-            >Update Status
+            >
+              Update Status
             </button>
           </div>
-          <span className="text-xs text-gray-400">
-            {selectedIds.length} selected
-          </span>
+        </div>
+        <div className="flex justify-end text-m text-gray-400 mt-2">
+          {selectedIds.length} selected
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto min-h-50">
         <table className="min-w-full text-base">
           <thead className="bg-gray-800/80 text-gray-300 uppercase tracking-wider text-sm">
             <tr className="odd:bg-gray-800/40 even:bg-transparent hover:bg-gray-700/40 transition">
@@ -128,6 +163,13 @@ export default function InternTable({
           </thead>
 
           <tbody className="divide-y divide-gray-700">
+            {filteredInternships.length === 0 && (
+              <tr>
+                <td colSpan="7">
+                  <div className="flex justify-center items-center h-48 text-gray-400 text-lg">No internships match your search</div>
+                </td>
+              </tr>
+            )}
             {internships.length === 0 && (
               <tr>
                 <td colSpan="6" className="px-6 py-6 text-center text-gray-400">
@@ -136,7 +178,7 @@ export default function InternTable({
               </tr>
             )}
 
-            {internships.map((intern) => (
+            {filteredInternships.map((intern) => (
               <tr key={intern._id} className="hover:bg-gray-700/40 transition">
                 <td className="px-6 py-5 text-center">
                   <input

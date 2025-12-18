@@ -3,6 +3,14 @@ body {
     font-family: 'Space Grotesk', ui-sans-serif, system-ui;
 }
 
+/* Dark scrollbar for dropdowns */
+::-webkit-scrollbar {
+  width: 0px;
+}
+
+
+
+
 .input-dark {
   width: 100%;
   padding-left: 1rem;
