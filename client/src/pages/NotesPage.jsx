@@ -4,6 +4,7 @@ import API from "../services/api";
 import { toast } from "react-toastify";
 import ReactMarkdown from "react-markdown";
 import logo from "../assets/logo.png";
+import { useCallback } from "react";
 
 export default function NotesPage() {
   const { id } = useParams();
@@ -13,12 +14,14 @@ export default function NotesPage() {
   const [notes, setNotes] = useState("");
   const [isPreview, setIsPreview] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [originalNotes, setOriginalNotes] = useState("");
 
   useEffect(() => {
     API.get(`/api/internships/${id}`)
       .then((res) => {
         setInternship(res.data);
         setNotes(res.data.notes || "");
+        setOriginalNotes(res.data.notes || "");
         setLoading(false);
       })
       .catch(() => {
@@ -27,6 +30,32 @@ export default function NotesPage() {
       });
   }, [id]);
 
+  const handleSave = useCallback(async () => {
+    try {
+      await API.put(`/api/internships/${id}`, { notes });
+      setOriginalNotes(notes);
+      toast.success("Notes updated");
+    } catch (err) {
+      toast.error("Failed to save notes");
+    }
+  }, [notes, id]);
+
+  const isDirty = notes !== originalNotes;
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (
+        (isMac && e.metaKey && e.key === "s") ||
+        (!isMac && e.ctrlKey && e.key === "s")
+      ) {
+        e.preventDefault();
+        handleSave();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSave]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-800 text-gray-200 flex justify-center items-center">
@@ -34,14 +63,6 @@ export default function NotesPage() {
       </div>
     );
   }
-  const handleSave = async () => {
-    try {
-      await API.put(`/api/internships/${id}`, { notes });
-      toast.success("Notes updated");
-    } catch (err) {
-      toast.error("Failed to save notes");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
@@ -95,23 +116,73 @@ export default function NotesPage() {
           </div>
 
           <button
-            onClick={handleSave}
-            className="ml-auto px-5 py-2 rounded-md bg-green-600 hover:bg-green-500 font-semibold text-white"
+            onClick={isDirty ? handleSave : null}
+            disabled={!isDirty}
+            className={`ml-auto flex items-center gap-2 px-5 py-2 rounded-xl font-semibold
+            ${
+              isDirty
+                ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                : "bg-gray-600 text-gray-400 cursor-not-allowed"
+            }
+        `}
           >
-            Save Notes
+            <span>Save</span>
+            <span
+              className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-400"
+              }`}
+            >
+              {navigator.userAgentData?.platform === "macOS" ||
+              navigator.platform.toLowerCase().includes("mac")
+                ? "⌘"
+                : "Ctrl"}
+            </span>
+            <span
+              className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-400"
+              }`}
+            >
+              S
+            </span>
           </button>
         </div>
 
         {/* Editor / Preview */}
         {!isPreview ? (
-          <textarea
-            className="w-full h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Write markdown notes here..."
-          />
+          <div className="relative">
+            <textarea
+              className="w-full h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg 
+           focus:outline-none focus:ring-1 focus:ring-gray-600"
+              placeholder="Start writing your notes in Markdown..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+            <div className="absolute bottom-10 left-10 text-gray-400 text-lg font-semibold pointer-events-none select-none">
+              <h4 className="uppercase tracking-widest text-gray-500 mb-3">
+                MARKDOWN TIPS
+              </h4>
+
+              <div className="flex gap-12">
+                <div>
+                  <p># Heading 1</p>
+                  <p>**bold**</p>
+                  <p>- bullet point</p>
+                  <p>{`> blockquote`}</p>
+                  <p>[link](url)</p>
+                </div>
+
+                <div>
+                  <p>## Heading 2</p>
+                  <p>*italic*</p>
+                  <p>1. numbered list</p>
+                  <p>`inline code`</p>
+                  <p>{`'''code block'''`}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
-          <div className="w-full h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-6 overflow-auto prose prose-invert">
+          <div className="w-full h-[65vh] bg-gray-900 text-lg font-semibold text-gray-200 border border-gray-700 rounded-lg p-6 overflow-auto prose prose-invert">
             <ReactMarkdown>{notes}</ReactMarkdown>
           </div>
         )}
