@@ -117,6 +117,21 @@ export const getInternships = async (req, res) => {
     });
 };
 
+// @route GET /api/internships/:id
+export const getInternshipsById = async(req, res) => {
+    const internship = await Internship.findOne({
+        _id: req.params.id,
+        user: req.user._id,
+    }
+    );
+
+    if (!internship) {
+        return res.status(404).json({ message: "Internship not found "});
+    }
+
+    return res.json(internship);
+}
+
 // @route PUT /api/internships/:id
 export const updateInternship = async (req, res) => {
     const internship = await Internship.findById(req.params.id);

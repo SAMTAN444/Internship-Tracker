@@ -5,6 +5,7 @@ import {
     updateInternship,
     deleteInternship,
     updateBulkStatus,
+    getInternshipsById,
 } from "../controllers/internshipController.js"
 import { protect } from "../middleware/authMiddleware.js"
 
@@ -17,6 +18,7 @@ router.route("/")
     .get(protect, getInternships);
 
 router.route("/:id")
+    .get(protect, getInternshipsById)
     .put(protect, updateInternship)
     .delete(protect, deleteInternship);
 

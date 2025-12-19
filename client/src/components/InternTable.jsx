@@ -1,5 +1,6 @@
 import { MoreHorizontal, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FileText } from "lucide-react";
 import FilterDropdown from "./FilterOptions";
 import StatusDropdown from "./StatusDropdown";
@@ -53,6 +54,7 @@ export default function InternTable({
   const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
@@ -306,16 +308,27 @@ export default function InternTable({
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right relative">
-                  <button
-                    onClick={() =>
-                      setOpenMenuId(
-                        openMenuId === intern._id ? null : intern._id
-                      )
-                    }
-                    className="p-2 rounded-lg hover:bg-gray-700"
-                  >
-                    <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                  </button>
+                  <div className="flex items-center gap-3 justify-end">
+                    {/* Notes Button */}
+                    <button
+                      onClick={() => navigate(`/notes/${intern._id}`)}
+                      className="p-2 rounded-lg hover:bg-gray-700"
+                    >
+                      <FileText className="w-4 h-4 text-gray-400" />
+                    </button>
+
+                    {/* Menu Toggle */}
+                    <button
+                      onClick={() =>
+                        setOpenMenuId(
+                          openMenuId === intern._id ? null : intern._id
+                        )
+                      }
+                      className="p-2 rounded-lg hover:bg-gray-700"
+                    >
+                      <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                    </button>
+                  </div>
 
                   {openMenuId === intern._id && (
                     <div
