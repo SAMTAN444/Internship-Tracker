@@ -8,6 +8,9 @@ import EditInternshipModal from "../components/EditInternshipModal";
 import Footer from "../components/Footer";
 import logo from "../assets/logo.png";
 import { toast } from "react-toastify";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import "../confirm-dark.css";
 
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
@@ -36,7 +39,14 @@ export default function Dashboard() {
         notes: formData.notes,
       });
       toast.success("Internship added");
+
+      const { data } = await API.get(
+        `/api/internships?page=1&limit=${limit}&q=${searchquery}&field=${searchField}&sortField=${sortField}&sortOrder=${sortOrder}`
+      );
+
       setPage(1);
+      setInternships(data.data);
+      setTotal(data.total);
       return true;
     } catch (err) {
       console.error(err);
@@ -45,7 +55,22 @@ export default function Dashboard() {
     }
   };
 
-  const deleteInternship = async (id) => {
+  const deleteInternship = (id) => {
+    confirmAlert({
+      title: "Delete Internship",
+      message: "Are you sure you want to delete this internship?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => actuallyDelete(id),
+        },
+        {
+          label: "No",
+        },
+      ],
+    });
+  };
+  const actuallyDelete = async (id) => {
     try {
       await API.delete(`/api/internships/${id}`);
 

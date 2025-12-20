@@ -44,7 +44,7 @@ export default function InternTable({
   };
 
   const statusStyles = {
-    Applied: "bg-blue-600 text-white",
+    Applied: "bg-gray-600 text-white",
     OA: "bg-purple-600 text-white",
     Interview: "bg-yellow-600 text-white",
     Offer: "bg-green-600 text-white",

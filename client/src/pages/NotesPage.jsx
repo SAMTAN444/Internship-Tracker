@@ -16,6 +16,8 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(true);
   const [originalNotes, setOriginalNotes] = useState("");
 
+  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+
   useEffect(() => {
     API.get(`/api/internships/${id}`)
       .then((res) => {
@@ -54,7 +56,7 @@ export default function NotesPage() {
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleSave]);
+  }, [handleSave, isMac]);
 
   if (loading) {
     return (
