@@ -73,7 +73,7 @@ export default function NotesPage() {
         <div className="w-full max-w-7xl flex items-center justify-between px-10 py-4">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Logo" className="w-12 h-12 opacity-90" />
-            <span className="text-2xl font-seimibold">Trackly</span>
+            <span className="text-2xl font-semibold">Trackly</span>
           </div>
 
           <button

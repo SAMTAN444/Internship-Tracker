@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../services/api";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { HiExclamationCircle } from "react-icons/hi";
 import { toast } from "react-toastify";
 
