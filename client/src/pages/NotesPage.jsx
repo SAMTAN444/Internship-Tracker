@@ -69,8 +69,8 @@ export default function NotesPage() {
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
-      <header className="w-full border-b border-gray-700 bg-gray-700 flex justify-center">
-        <div className="w-full max-w-7xl flex items-center justify-between px-10 py-4">
+      <header className="border-gray-700 border-b bg-gray-700">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-3">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Logo" className="w-12 h-12 opacity-90" />
             <span className="text-2xl font-semibold">Trackly</span>
@@ -89,7 +89,7 @@ export default function NotesPage() {
       </header>
 
       <div className="flex-1 w-full max-w-6xl mx-auto p-10">
-        <h1 className="text-3xl font-bold mb-2">{internship.company}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">{internship.company}</h1>
         <p className="text-lg text-gray-300 mb-6">{internship.role}</p>
 
         {/* Edit / Preview Toggle */}
@@ -153,7 +153,7 @@ export default function NotesPage() {
         {!isPreview ? (
           <div className="relative">
             <textarea
-              className="w-full h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg 
+              className="w-full h-[50vh] md:h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg 
            focus:outline-none focus:ring-1 focus:ring-gray-600"
               placeholder="Start writing your notes in Markdown..."
               value={notes}

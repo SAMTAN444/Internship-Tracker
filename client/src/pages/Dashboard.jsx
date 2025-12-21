@@ -144,8 +144,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
-      <header className="w-full border-b border-gray-800 bg-gray-700 flex justify-center">
-        <div className="w-full max-w-7xl flex items-center justify-between px-14 py-5">
+      <header className="w-full border-b border-gray-800 bg-gray-700">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4">
           {/* LEFT — Greeting */}
           <span className="text-gray-300 text-2xl">
             Hello,{" "}
@@ -194,7 +194,7 @@ export default function Dashboard() {
 
       <section className="relative z-50 px-6 py-10 flex justify-center">
         <div className="w-full max-w-7xl  rounded-xl">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-14 p-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 p-6 md:p-12 items-center">
             <div className="flex justify-center">
               <img
                 src={robotImage}
@@ -209,8 +209,8 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <main className="relative z-10 flex-1 px-6 py-6 flex justify-center">
-        <div className="w-full max-w-7xl">
+      <main className="px-4 md:px-6 py-4 md:py-6 flex justify-center">
+        <div className="w-full max-w-7xl overflow-x-auto">
           <InternTable
             internships={internships}
             selectedIds={selectedIds}

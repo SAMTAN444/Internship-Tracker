@@ -44,11 +44,11 @@ export default function Register() {
 
   return (
     <>
-      <div className="flex items-center min-h-screen bg-white dark:bg-gray-900">
-        <div className="container mx-auto">
+      <div className="flex items-center min-h-screen bg-white dark:bg-gray-900 px-4">
+        <div className="container mx-auto max-w-md">
           <div className="max-w-md mx-auto my-10">
             <div className="text-center">
-              <h1 className="my-3 text-3xl font-semibold text-gray-700 dark:text-gray-200">
+              <h1 className="my-3 text-2xl font-semibold text-gray-700 dark:text-gray-200">
                 Register
               </h1>
               <p className="text-gray-500 dark:text-gray-400">
