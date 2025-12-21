@@ -137,7 +137,6 @@ export default function Dashboard() {
       })
       .catch((err) => {
         console.error(err);
-        toast.error("Failed to load internships");
       });
   }, [page, searchquery, searchField, sortField, sortOrder]);
 
