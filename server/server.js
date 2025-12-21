@@ -19,11 +19,13 @@ app.use(cors({
 // If someone sends me JSON, please decode it for me
 app.use(express.json());
 
+app.use("/api/auth", authRoutes);
 app.use("/api/internships", internshipRoutes);
 
 app.get("/api/me", protect, (req, res) => {
     res.json(req.user);
 })
+
 
 app.get("/", (req, res) => {
     res.send("API running");
@@ -31,7 +33,7 @@ app.get("/", (req, res) => {
 
 
 
-app.use("/api/auth", authRoutes);
+
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
