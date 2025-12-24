@@ -22,7 +22,7 @@ export default function Login() {
         password,
       });
       localStorage.setItem("token", data.token);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
       toast.success("Successfully Logged In")
     } catch (error) {
       toast.error("Invalid username or password")
@@ -33,7 +33,7 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex items-center min-h-screen bg-white dark:bg-gray-900 px-4">
+      <div className="flex items-center min-h-screen bg-white dark:bg-gray-900 px-3 md:px-4">
         <div className="container mx-auto max-w-md">
           <div className="max-w-md mx-auto my-10">
             <div className="text-center">
@@ -60,7 +60,7 @@ export default function Login() {
                     placeholder="you@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                    className="input-dark w-full px-3 py-2"
                   ></input>
                 </div>
 
@@ -79,7 +79,7 @@ export default function Login() {
                       placeholder="Your Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:border-gray-600 dark:focus:ring-gray-900 dark:focus:border-gray-500"
+                      className="w-full px-3 py-2 input-dark"
                     />
 
                     <button

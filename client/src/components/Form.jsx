@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Leaf, Sun, Wind, Snowflake, CalendarClock } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import { toast } from "react-toastify";
 
 function Field({ label, children }) {
     return (
@@ -90,7 +91,7 @@ export default function Form({ onSubmit }) {
     e.preventDefault();
 
     if (!form.company || !form.role || !form.cycle) {
-        alert("Please fill in required fields");
+        toast.error("Please fill in required fields");
         return;
     }
     const success= await onSubmit(form);

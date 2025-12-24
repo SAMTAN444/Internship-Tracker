@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [searchField, setSearchField] = useState("");
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [loading, setLoading] = useState(true);
 
   const addInternship = async (formData) => {
     try {
@@ -119,12 +120,17 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    API.get("/api/auth/me")
-      .then((res) => setUser(res.data))
-      .catch(() => {
-        setUser(null);
-        navigate("/login");
-      });
+    async function init() {
+      try {
+        const res = await API.get("/api/auth/me");
+        setUser(res.data);
+      } catch {
+        navigate("/login", { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    }
+    init();
   }, []);
 
   useEffect(() => {
@@ -140,13 +146,22 @@ export default function Dashboard() {
       });
   }, [page, searchquery, searchField, sortField, sortOrder]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800">
+        <div className="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-gray-400">Loading dashboard…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
       <header className="w-full border-b border-gray-800 bg-gray-700">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-3 md:px-6 md:py-4 gap-2">
           {/* LEFT — Greeting */}
-          <span className="text-gray-300 text-2xl">
+          <span className="text-lg md:text-2xl">
             Hello,{" "}
             <span className="font-medium text-gray-100">
               {user?.name || "User"}
@@ -154,12 +169,12 @@ export default function Dashboard() {
           </span>
 
           {/* RIGHT — Logo + Text + Logout */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 md:gap-6">
             <div className="flex items-center gap-3">
               <img
                 src={logo}
                 alt="Trackly Logo"
-                className="w-10 h-10 opacity-90"
+                className="w-15 h-15 md:w-10 md:h-10 opacity-90"
               />
               <span className="text-2xl font-semibold tracking-wide">
                 Trackly
@@ -167,7 +182,7 @@ export default function Dashboard() {
             </div>
 
             <button
-              className="px-4 py-2 rounded-lg text-m font-bold bg-red-700 text-white hover:bg-red-600 transition"
+              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg bg-red-700 text-white transition hover:bg-red-600"
               onClick={handleLogout}
             >
               Logout
@@ -191,10 +206,10 @@ export default function Dashboard() {
         />
       )}
 
-      <section className="relative z-50 px-6 py-10 flex justify-center">
+      <section className="relative z-50 px-4 py-6 md:mx-6 md:py-10 flex justify-center">
         <div className="w-full max-w-7xl  rounded-xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14 p-6 md:p-12 items-center">
-            <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-14 p-4 md:p-12 items-center">
+            <div className="hidden md:flex justify-center">
               <img
                 src={robotImage}
                 alt="Robot"

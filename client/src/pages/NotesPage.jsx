@@ -153,13 +153,13 @@ export default function NotesPage() {
         {!isPreview ? (
           <div className="relative">
             <textarea
-              className="w-full h-[50vh] md:h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg 
+              className="w-full h-[40vh] md:h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg 
            focus:outline-none focus:ring-1 focus:ring-gray-600"
               placeholder="Start writing your notes in Markdown..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-            <div className="absolute bottom-10 left-10 text-gray-400 text-lg font-semibold pointer-events-none select-none">
+            <div className="hidden md:block absolute bottom-10 left-10 text-gray-400 text-lg font-semibold pointer-events-none select-none">
               <h4 className="uppercase tracking-widest text-gray-500 mb-3">
                 MARKDOWN TIPS
               </h4>

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FileText } from "lucide-react";
 import FilterDropdown from "./FilterOptions";
 import StatusDropdown from "./StatusDropdown";
-
+import InternCard from "./InternCard.jsx";
 export default function InternTable({
   internships,
   selectedIds,
@@ -80,7 +80,7 @@ export default function InternTable({
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [searchquery, sortField, sortOrder]);
 
   return (
     <div className="bg-gray-900/60 backdrop-blur border border-gray-700/60 rounded-xl shadow-lg">
@@ -89,85 +89,107 @@ export default function InternTable({
       <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60">
         {/* Row 1 - Title */}
         <div>
-          <h2 className="text-3xl font-semibold tracking-wide">Internships</h2>
-          <p className="text-xl text-gray-400">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-wide">
+            Internships
+          </h2>
+          <p className="text-sm md:text-base text-gray-400">
             Track and manage your applications
           </p>
         </div>
 
         {/* Row 2 - Search + Filter + Status + Update Button */}
-        <div className="flex items-center justify-between mt-6">
-          <div className="flex flex-col flex-1">
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                placeholder="Search applications..."
-                className="w-1/2 bg-gray-900 border-gray-700 rounded-lg px-4 py-2 text-gray-200 focus:outline-none text-lg"
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(1);
-                }}
-              />
-              <div className="relative overflow-visible">
-                <FilterDropdown
-                  value={searchField}
-                  setValue={(val) => {
-                    setSearchField(val);
-                    setPage(1);
-                  }}
-                />
-              </div>
-            </div>
+        {/* CONTROLS */}
+        <div className="mt-6 space-y-6">
+          {/* Search + Filter */}
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Search applications"
+            value={searchquery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="input-dark w-full"
+          />
 
-            {/* RESET sort button  */}
-            {/* RESET BUTTON BELOW SEARCH */}
-            <button
-              disabled={
-                sortField === "" && searchquery === "" && searchField === ""
-              }
-              onClick={() => {
-                setSortField("");
-                setSortOrder("asc");
-                setSearchQuery("");
-                setSearchField("");
+          {/* Filter + Reset (mobile same row) */}
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            <FilterDropdown
+              value={searchField}
+              setValue={(val) => {
+                setSearchField(val);
                 setPage(1);
               }}
-              className={`mt-2 px-3 py-1.5 rounded-md text-sm font-semibold transition self-start ${
-                sortField === "" && searchquery === "" && searchField === ""
-                  ? "bg-gray-600 text-gray-300 cursor-not-allowed"
-                  : "bg-blue-700 text-white hover:bg-blue-600"
-              }`}
+            />
+
+            <button
+              disabled={!searchquery && !searchField && !sortField}
+              onClick={() => {
+                setSearchQuery("");
+                setSearchField("");
+                setSortField("");
+                setSortOrder("asc");
+                setPage(1);
+              }}
+              className="
+      px-4 py-2
+      rounded-lg
+      text-sm font-semibold
+      bg-gray-700 text-gray-200
+      disabled:opacity-40 disabled:cursor-not-allowed
+      hover:bg-gray-600
+    "
             >
               Reset
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Bulk actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <StatusDropdown
               value={statusToUpdate}
               setValue={setStatusToUpdate}
             />
+
             <button
               disabled={selectedIds.length === 0}
               onClick={onBulkUpdate}
-              className={`px-4 py-2 rounded-lg text-lg font-semibold transition focus:outline-none 
-                ${
-                  selectedIds.length === 0
-                    ? "bg-gray-600 text-gray-300 cursor-not-allowed"
-                    : "bg-teal-700 text-white hover:bg-teal-600"
-                }`}
+              className={`
+        px-4 py-2 rounded-lg font-semibold
+        ${
+          selectedIds.length === 0
+            ? "bg-gray-700 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-600"
+            : "bg-teal-700 text-white hover:bg-teal-600"
+        }
+      `}
             >
-              Update Status
+              Update status
             </button>
+
+            <span className="text-sm text-gray-400 sm:ml-auto">
+              {selectedIds.length} selected
+            </span>
           </div>
-        </div>
-        <div className="flex justify-end text-m text-gray-400 mt-2">
-          {selectedIds.length} selected
         </div>
       </div>
 
+      {/* MOBILE VIEW */}
+      <div className="block md:hidden px-4 py-4">
+        {internships.map((intern) => (
+          <InternCard
+            key={intern._id}
+            intern={intern}
+            selected={selectedIds.includes(intern._id)}
+            onToggleSelect={() => toggleSelect(intern._id)}
+            onEdit={() => onEdit(intern)}
+            onDelete={() => onDelete(intern._id)}
+            onOpenNotes={() => navigate(`/notes/${intern._id}`)}
+          />
+        ))}
+      </div>
       {/* Table */}
-      <div className="overflow-x-auto min-h-50">
+      <div className="hidden md:block">
         <table className="min-w-full text-base">
           <thead className="bg-gray-800/80 text-gray-300 uppercase tracking-wider text-sm">
             <tr className="odd:bg-gray-800/40 even:bg-transparent hover:bg-gray-700/40 transition">
