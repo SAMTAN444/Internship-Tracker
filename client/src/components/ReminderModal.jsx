@@ -2,6 +2,8 @@ import { X, Bell, Trash2, CalendarClock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import { toast } from "react-toastify";
+
 function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
   return (
     <div className="relative">
@@ -106,6 +108,11 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
   function handleSave() {
     if (!date) return;
 
+    if (intern.status === "Interview" && !location.trim()) {
+        toast.error("Please specify interview location");
+        return;
+    }
+
     let h = parseInt(hour, 10);
     if (period === "PM" && h !== 12) h += 12;
     if (period === "AM" && h === 12) h = 0;
@@ -124,7 +131,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800/70 backdrop-blur-xs">
       <div
         ref={modalRef}
-        className="w-full max-w-md rounded-2xl bg-gray-900 border border-gray-700 shadow-2xl p-6"
+        className="w-full max-w-md mx-4 md:mx=0 rounded-2xl bg-gray-900 border border-gray-700 shadow-2xl p-6"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -242,7 +249,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. NTU North Spine / Zoom"
+              placeholder="e.g. NTU North Spine"
               className="input-dark mb-4"
             />
           </>
@@ -253,7 +260,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
           {intern.reminder && (
             <button
               onClick={onRemove}
-              className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300"
+              className="flex items-center gap-2 text-sm text-white bg-red-700 rounded-lg px-4 py-2 hover:bg-red-600"
             >
               <Trash2 className="w-4 h-4" />
               Remove reminder

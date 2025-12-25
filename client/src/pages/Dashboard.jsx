@@ -136,7 +136,7 @@ export default function Dashboard() {
       );
 
       setTotal(data.total);
-
+      setInternships(data.data);
       setSelectedIds([]);
     } catch (err) {
       console.error(err);
@@ -205,7 +205,7 @@ export default function Dashboard() {
           </span>
 
           {/* RIGHT — Logo + Text + Logout */}
-          <div className="flex items-center gap-3 md:gap-6">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 md:gap-6">
             <div className="flex items-center gap-3">
               <img
                 src={logo}
@@ -243,9 +243,10 @@ export default function Dashboard() {
       )}
 
       <section className="relative z-50 px-4 py-6 md:mx-6 md:py-10 flex justify-center">
-        <div className="w-full max-w-screen-2xl rounded-xl">
-          <div className="grid grid-cols-1 md:grid-cols-[0.9fr_1.1fr] gap-8 p-4 md:p-12 items-start">
-            <div className="hidden md:flex flex-col gap-6">
+        <div className="w-full max-w-screen-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-8 p-4 md:p-12 items-start">
+            {/* LEFT */}
+            <div className="flex flex-col">
               <RemindersPanel
                 reminders={upcomingReminders}
                 onOpen={(intern) => setReminderTarget(intern)}
@@ -253,7 +254,8 @@ export default function Dashboard() {
               />
             </div>
 
-            <div className="flex justify-center">
+            {/* RIGHT */}
+            <div className="flex flex-col">
               <Form onSubmit={addInternship} />
             </div>
           </div>
