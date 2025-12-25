@@ -7,7 +7,6 @@ import { protect } from "./middleware/authMiddleware.js"
 import internshipRoutes from "./routes/internshipRoutes.js"
 
 dotenv.config();
-await connectDB();
 
 const app = express();
 
@@ -35,7 +34,15 @@ app.get("/", (req, res) => {
 
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, "0.0.0.0", async () => {
-    console.log(`Server running on port ${PORT}`);
 
+app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`Server running on port ${PORT}`);
+
+  try {
+    await connectDB();
+    console.log("MongoDB connected");
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+  }
 });
+
