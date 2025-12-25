@@ -60,8 +60,9 @@ export default function NotesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-800 text-gray-200 flex justify-center items-center">
-        Loading...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800">
+        <div className="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-gray-400">Loading dashboard…</p>
       </div>
     );
   }

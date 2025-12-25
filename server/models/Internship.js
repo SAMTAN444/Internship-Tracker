@@ -38,6 +38,13 @@ const internshipSchema = new mongoose.Schema (
         notes: {
             type: String,
         },
+        reminder: {
+            type: {
+                type: String,
+                enum: ["OA", "Interview"],
+            },
+            remindAt: Date,
+        }
     },
     {timestamps: true }
 );

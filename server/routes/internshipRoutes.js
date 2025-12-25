@@ -6,6 +6,8 @@ import {
     deleteInternship,
     updateBulkStatus,
     getInternshipsById,
+    setReminder,
+    clearReminder,
 } from "../controllers/internshipController.js"
 import { protect } from "../middleware/authMiddleware.js"
 
@@ -22,4 +24,9 @@ router.route("/:id")
     .put(protect, updateInternship)
     .delete(protect, deleteInternship);
 
-export default router;
+router.route("/:id/reminder")
+    .put(protect, setReminder)
+    .delete(protect, clearReminder);
+
+    export default router;
+

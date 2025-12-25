@@ -178,3 +178,67 @@ export const updateBulkStatus = async (req, res) => {
 
     res.json({ message: "Status updated successfully" });
 };
+
+// @route PUT /api/internships/:id/reminder
+export const setReminder = async (req, res) => {
+    const { type, remindAt } = req.body;
+
+    if (!type || !remindAt) {
+        return res.status.json({ message: "Reminder type and time required" });
+    }
+
+    if (!["OA", "Interview"].includes(type)) {
+        return res.status(400).json({ message: "Invalid reminder type" });
+    }
+
+    const internship = await Internship.findById(req.params.id);
+
+    if (!internship) {
+        return res.status(404).json({ message: "INternship not found" });
+    }
+
+    if (internship.user.toString() !== req.user._id.toString()) {
+        return res.status(401).json({ message: "Not authorized" });
+    }
+
+    if (internship.status !== type) {
+        return res.status(400).json({
+            message: `Cannot set ${type} reminder when status is ${internship.status}`,
+        });
+    }
+
+    const remindDate = new Date(remindAt);
+    if (remindDate <= new Date()) {
+        return res.status(400).json({ message: "Reminder must be in the future"})
+    }
+
+    internship.reminder = {
+        type,
+        remindAt: remindDate,
+    };
+
+    await internship.save();
+
+    res.json({
+        message: "Reminder set successfully",
+        reminder: internship.reminder,
+    })
+}
+
+// @route DELETE /api/internships/:id/reminder
+export const clearReminder = async(req, res) => {
+    const internship = await Internship.findById(req.params.id);
+
+    if(!internship) {
+        return res.status(404).json({ message: "Internship not found" });
+    }
+
+    if (!internship.user.toString() !== req.user._id.toString()) {
+        return res.status(401).json({ message: "Not authorized" });
+    }
+
+    internship.reminder = undefined;
+    await internship.save();
+
+    res.json({ message: "Reminder removed" });
+}

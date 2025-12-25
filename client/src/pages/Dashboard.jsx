@@ -159,7 +159,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
       {/* Top Bar */}
       <header className="w-full border-b border-gray-800 bg-gray-700">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-3 md:px-6 md:py-4 gap-2">
+        <div className="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-3 md:px-6 md:py-4 gap-2 overflow-x-auto">
           {/* LEFT — Greeting */}
           <span className="text-lg md:text-2xl">
             Hello,{" "}
@@ -207,7 +207,7 @@ export default function Dashboard() {
       )}
 
       <section className="relative z-50 px-4 py-6 md:mx-6 md:py-10 flex justify-center">
-        <div className="w-full max-w-7xl  rounded-xl">
+        <div className="w-full max-w-screen-2xl rounded-xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-14 p-4 md:p-12 items-center">
             <div className="hidden md:flex justify-center">
               <img
@@ -224,7 +224,7 @@ export default function Dashboard() {
       </section>
 
       <main className="px-4 md:px-6 py-4 md:py-6 flex justify-center">
-        <div className="w-full max-w-7xl overflow-x-auto">
+        <div className="w-full max-w-screen-2xl overflow-x-auto">
           <InternTable
             internships={internships}
             selectedIds={selectedIds}

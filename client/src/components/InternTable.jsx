@@ -1,10 +1,18 @@
-import { MoreHorizontal, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  ExternalLink,
+  Pencil,
+  Trash2,
+  Bell,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText } from "lucide-react";
 import FilterDropdown from "./FilterOptions";
 import StatusDropdown from "./StatusDropdown";
 import InternCard from "./InternCard.jsx";
+import ReminderModal from "./ReminderModal.jsx";
+
 export default function InternTable({
   internships,
   selectedIds,
@@ -26,6 +34,7 @@ export default function InternTable({
   setSortField,
   sortOrder,
   setSortOrder,
+  onSaveReminder,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -53,6 +62,7 @@ export default function InternTable({
 
   const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [reminderTarget, setReminderTarget] = useState(null);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -370,6 +380,24 @@ export default function InternTable({
                         </a>
                       )}
 
+                      {/* Reminder - only for OA / Interview */}
+                      {(intern.status == "OA" || intern.status === "Interview") && (
+                        <button 
+                          onClick={() => {
+                            setReminderTarget(intern);
+                            setOpenMenuId(null);
+                          }}
+                          className="w-full flex items gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
+                        >
+                          <Bell 
+                          className={`w-4 h-4 ${
+                            intern.reminder ? "text-yellow-400" : "text-gray-400"
+                          }`} 
+                          />
+                          {intern.reminder ? "Edit Reminder" : "Set Reminder"}
+                        </button>
+                      )}
+
                       {/* Edit */}
                       <button
                         onClick={() => {
@@ -425,6 +453,16 @@ export default function InternTable({
           </button>
         </div>
       </div>
+      {reminderTarget && (
+        <ReminderModal
+          intern={reminderTarget}
+          onClose={() => setReminderTarget(null)}
+          onSave={(reminder) => {
+            onSaveReminder(reminderTarget._id, reminder);
+            setReminderTarget(null);
+          }}
+        ></ReminderModal>
+      )}
     </div>
   );
 }

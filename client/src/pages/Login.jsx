@@ -23,9 +23,9 @@ export default function Login() {
       });
       localStorage.setItem("token", data.token);
       navigate("/dashboard", { replace: true });
-      toast.success("Successfully Logged In")
+      toast.success("Successfully Logged In");
     } catch (error) {
-      toast.error("Invalid username or password")
+      toast.error("Invalid username or password");
     } finally {
       setLoading(false);
     }
