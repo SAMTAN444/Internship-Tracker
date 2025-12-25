@@ -195,6 +195,7 @@ export default function InternTable({
             onEdit={() => onEdit(intern)}
             onDelete={() => onDelete(intern._id)}
             onOpenNotes={() => navigate(`/notes/${intern._id}`)}
+            onOpenReminder={() => setReminderTarget(intern)}
           />
         ))}
       </div>

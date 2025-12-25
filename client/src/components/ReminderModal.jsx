@@ -3,6 +3,56 @@ import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
+function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="
+          time-select
+          flex items-center justify-center
+          font-semibold
+          hover:bg-gray-700
+          transition
+        "
+      >
+        {value}
+      </button>
+
+      {isOpen && (
+        <div
+          className="
+            absolute top-full mt-2
+            w-full
+            max-h-48 overflow-y-auto
+            bg-gray-800
+            border border-gray-700
+            rounded-xl
+            shadow-xl
+            z-50
+          "
+        >
+          {options.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => onSelect(opt)}
+              className="
+                w-full px-4 py-2
+                text-center text-sm
+                hover:bg-gray-700
+                transition
+              "
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
   const modalRef = useRef(null);
 
@@ -10,15 +60,8 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
     ? new Date(intern.reminder.remindAt)
     : null;
 
+  const [openPicker, setOpenPicker] = useState(null);
   const [date, setDate] = useState(existing ?? null);
-  const [time, setTime] = useState(
-    existing
-      ? `${existing.getHours().toString().padStart(2, "0")}:${existing
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`
-      : "09:00"
-  );
   const [dateOpen, setDateOpen] = useState(false);
   const [hour, setHour] = useState("09");
   const [minute, setMinute] = useState("00");
@@ -33,6 +76,17 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
+
+  useEffect(() => {
+    function closePickers(e) {
+      if (!e.target.closest(".time-select")) {
+        setOpenPicker(null);
+      }
+    }
+
+    document.addEventListener("click", closePickers);
+    return () => document.removeEventListener("click", closePickers);
+  }, []);
 
   useEffect(() => {
     if (!existing) return;
@@ -132,47 +186,50 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
           Reminder time
         </label>
 
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-3 mb-6">
           {/* Hour */}
-          <select
+          <TimeDropdown
             value={hour}
-            onChange={(e) => setHour(e.target.value)}
-            className="time-select"
-          >
-            {Array.from({ length: 12 }, (_, i) => {
-              const v = String(i + 1).padStart(2, "0");
-              return (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              );
-            })}
-          </select>
+            options={Array.from({ length: 12 }, (_, i) =>
+              String(i + 1).padStart(2, "0")
+            )}
+            isOpen={openPicker === "hour"}
+            onOpen={() => setOpenPicker(openPicker === "hour" ? null : "hour")}
+            onSelect={(v) => {
+              setHour(v);
+              setOpenPicker(null);
+            }}
+          />
 
           <span className="text-gray-400 font-semibold">:</span>
 
           {/* Minute */}
-          <select
+          <TimeDropdown
             value={minute}
-            onChange={(e) => setMinute(e.target.value)}
-            className="time-select"
-          >
-            {["00", "15", "30", "45"].map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+            options={["00", "15", "30", "45"]}
+            isOpen={openPicker === "minute"}
+            onOpen={() =>
+              setOpenPicker(openPicker === "minute" ? null : "minute")
+            }
+            onSelect={(v) => {
+              setMinute(v);
+              setOpenPicker(null);
+            }}
+          />
 
           {/* AM / PM */}
-          <select
+          <TimeDropdown
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="time-select"
-          >
-            <option>AM</option>
-            <option>PM</option>
-          </select>
+            options={["AM", "PM"]}
+            isOpen={openPicker === "period"}
+            onOpen={() =>
+              setOpenPicker(openPicker === "period" ? null : "period")
+            }
+            onSelect={(v) => {
+              setPeriod(v);
+              setOpenPicker(null);
+            }}
+          />
         </div>
 
         {/* Actions */}

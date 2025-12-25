@@ -34,18 +34,17 @@ body {
 }
 
 .time-select {
-  @apply
-    bg-gray-800
-    border border-gray-700
-    rounded-lg
-    px-3 py-2
-    text-sm text-gray-200
-    focus:outline-none
-    focus:ring-2 focus:ring-blue-500
-    hover:bg-gray-700
-    transition;
-}
+  min-width: 72px;        /* IMPORTANT */
+  height: 44px;           /* Apple/Google touch target */
+  padding: 0 12px;
+  border-radius: 10px;
 
+  background-color: #1f2937; /* gray-800 */
+  color: #e5e7eb;            /* gray-200 */
+
+  border: 1px solid #374151; /* gray-700 */
+  font-size: 16px;           /* prevents iOS zoom */
+}
     
 
 /* Dark theme autofill fix – matches input-dark */

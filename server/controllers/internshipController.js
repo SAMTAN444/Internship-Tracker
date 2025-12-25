@@ -140,10 +140,17 @@ export const updateInternship = async (req, res) => {
         return res.status(404).json({ message: "Internship not found" });
     }
     if (internship.user.toString() !== req.user._id.toString()) {
-        return res.status(401).json({ mesage: "Not authorized" });
+        return res.status(401).json({ message: "Not authorized" });
     }
 
     Object.assign(internship, req.body);
+
+    // Enforce reminder rule
+    if (
+        req.body.status && !["OA", "Interview"].includes(req.body.status)
+    ) {
+        internship.reminder = null;
+    }
     const updated = await internship.save();
 
     res.json(updated);
@@ -171,10 +178,18 @@ export const updateBulkStatus = async (req, res) => {
         return res.status(400).json({ message: "No internships selected" });
     }
 
+    const update = { status };
+
+    // 🔒 Enforce reminder rule
+    if (!["OA", "Interview"].includes(status)) {
+        update.reminder = null;
+    }
+
     await Internship.updateMany(
         { _id: { $in: ids }, user: req.user._id },
-        { status }
+        { $set: update }
     );
+
 
     res.json({ message: "Status updated successfully" });
 };

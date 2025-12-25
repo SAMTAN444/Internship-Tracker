@@ -1,4 +1,4 @@
-import { FileText, Pencil, Trash2 } from "lucide-react";
+import { FileText, Pencil, Trash2, Bell } from "lucide-react";
 
 export default function InternCard({
   intern,
@@ -7,6 +7,7 @@ export default function InternCard({
   onEdit,
   onDelete,
   onOpenNotes,
+  onOpenReminder,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -81,6 +82,21 @@ export default function InternCard({
         >
           <FileText className="w-4 h-4 text-blue-400" />
         </button>
+
+        {/* Reminder (OA / Interview only) */}
+        {(intern.status === "OA" || intern.status === "Interview") && (
+          <button
+            onClick={onOpenReminder}
+            title={intern.reminder ? "Edit reminder" : "Set reminder"}
+            className="p-2 rounded-lg hover:bg-gray-700"
+          >
+            <Bell
+              className={`w-4 h-4 ${
+                intern.reminder ? "text-yellow-400" : "text-gray-400"
+              }`}
+            />
+          </button>
+        )}
 
         <button
           onClick={onEdit}
