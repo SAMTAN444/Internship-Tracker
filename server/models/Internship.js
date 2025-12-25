@@ -44,6 +44,11 @@ const internshipSchema = new mongoose.Schema (
                 enum: ["OA", "Interview"],
             },
             remindAt: Date,
+
+            location: {
+                type: String,
+                trim: true,
+            }
         }
     },
     {timestamps: true }

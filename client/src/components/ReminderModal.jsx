@@ -2,7 +2,6 @@ import { X, Bell, Trash2, CalendarClock } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-
 function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
   return (
     <div className="relative">
@@ -55,6 +54,7 @@ function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
 
 export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
   const modalRef = useRef(null);
+  const [location, setLocation] = useState(intern.reminder?.location || "");
 
   const existing = intern.reminder?.remindAt
     ? new Date(intern.reminder.remindAt)
@@ -116,6 +116,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
     onSave({
       type: intern.status,
       remindAt: remindAt.toISOString(),
+      location: intern.status === "Interview" ? location: null,
     });
   }
 
@@ -232,6 +233,21 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
           />
         </div>
 
+        {intern.status === "Interview" && (
+          <>
+            <label className="block text-sm text-gray-300 mb-2">
+              Interview location
+            </label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. NTU North Spine / Zoom"
+              className="input-dark mb-4"
+            />
+          </>
+        )}
+
         {/* Actions */}
         <div className="flex items-center justify-between">
           {intern.reminder && (
@@ -255,7 +271,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
             <button
               onClick={handleSave}
               disabled={!date}
-              className="px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-sm font-semibold disabled:opacity-40"
+              className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-sm font-semibold disabled:opacity-40"
             >
               Save reminder
             </button>

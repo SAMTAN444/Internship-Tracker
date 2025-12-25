@@ -31,6 +31,14 @@ export default function Login() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800">
+        <div className="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-gray-400">Loading dashboard…</p>
+      </div>
+    );
+  }
   return (
     <>
       <div className="flex items-center min-h-screen bg-white dark:bg-gray-900 px-3 md:px-4">

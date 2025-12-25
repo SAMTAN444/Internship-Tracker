@@ -11,7 +11,6 @@ import { FileText } from "lucide-react";
 import FilterDropdown from "./FilterOptions";
 import StatusDropdown from "./StatusDropdown";
 import InternCard from "./InternCard.jsx";
-import ReminderModal from "./ReminderModal.jsx";
 
 export default function InternTable({
   internships,
@@ -35,6 +34,7 @@ export default function InternTable({
   sortOrder,
   setSortOrder,
   onSaveReminder,
+  setReminderTarget,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -60,9 +60,8 @@ export default function InternTable({
     Rejected: "bg-red-500 text-white",
   };
 
-  const [selectedNotes, setSelectedNotes] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [reminderTarget, setReminderTarget] = useState(null);
+
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -382,13 +381,13 @@ export default function InternTable({
                       )}
 
                       {/* Reminder - only for OA / Interview */}
-                      {(intern.status == "OA" || intern.status === "Interview") && (
+                      {(intern.status === "OA" || intern.status === "Interview") && (
                         <button 
                           onClick={() => {
                             setReminderTarget(intern);
                             setOpenMenuId(null);
                           }}
-                          className="w-full flex items gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
                         >
                           <Bell 
                           className={`w-4 h-4 ${
@@ -454,20 +453,7 @@ export default function InternTable({
           </button>
         </div>
       </div>
-      {reminderTarget && (
-        <ReminderModal
-          intern={reminderTarget}
-          onClose={() => setReminderTarget(null)}
-          onSave={(reminder) => {
-            onSaveReminder(reminderTarget._id, reminder);
-            setReminderTarget(null);
-          }}
-          onRemove={() => {
-            onSaveReminder(reminderTarget._id, null);
-            setReminderTarget(null);
-          }}
-        ></ReminderModal>
-      )}
+      
     </div>
   );
 }

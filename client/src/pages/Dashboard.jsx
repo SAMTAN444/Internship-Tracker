@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
-import robotImage from "../assets/robotimage.png";
+
 import EditInternshipModal from "../components/EditInternshipModal";
 import Footer from "../components/Footer";
 import logo from "../assets/logo.png";
 import { toast } from "react-toastify";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import RemindersPanel from "../components/RemindersPanel";
 import "../confirm-dark.css";
 
 export default function Dashboard() {
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [loading, setLoading] = useState(true);
+  const [reminderTarget, setReminderTarget] = useState(null);
 
   const addInternship = async (formData) => {
     try {
@@ -131,7 +133,15 @@ export default function Dashboard() {
       const { data } = await API.get(
         `/api/internships?page=${page}&limit=${limit}`
       );
-      setInternships(data.data);
+      setInternships((prev) =>
+        prev.map((i) =>
+          selectedIds.includes(i._id) &&
+          !["OA", "Interview"].includes(statusToUpdate)
+            ? { ...i, reminder: null }
+            : i
+        )
+      );
+
       setTotal(data.total);
 
       setSelectedIds([]);
@@ -140,6 +150,17 @@ export default function Dashboard() {
       toast.error("Failed to update internships");
     }
   };
+
+  const upcomingReminders = Array.isArray(internships)
+    ? internships
+        .filter((i) => i.reminder?.remindAt)
+        .filter((i) => new Date(i.reminder.remindAt) > new Date())
+        .sort(
+          (a, b) =>
+            new Date(a.reminder.remindAt) - new Date(b.reminder.remindAt)
+        )
+        .slice(0, 4)
+    : [];
 
   useEffect(() => {
     async function init() {
@@ -230,14 +251,15 @@ export default function Dashboard() {
 
       <section className="relative z-50 px-4 py-6 md:mx-6 md:py-10 flex justify-center">
         <div className="w-full max-w-screen-2xl rounded-xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-14 p-4 md:p-12 items-center">
-            <div className="hidden md:flex justify-center">
-              <img
-                src={robotImage}
-                alt="Robot"
-                className="max-w-sm w-full opacity-80"
+          <div className="grid grid-cols-1 md:grid-cols-[0.9fr_1.1fr] gap-8 p-4 md:p-12 items-start">
+            <div className="hidden md:flex flex-col gap-6">
+              <RemindersPanel
+                reminders={upcomingReminders}
+                onOpen={(intern) => setReminderTarget(intern)}
+                onDelete={(id) => handleSaveReminder(id, null)}
               />
             </div>
+
             <div className="flex justify-center">
               <Form onSubmit={addInternship} />
             </div>
@@ -269,10 +291,24 @@ export default function Dashboard() {
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
             onSaveReminder={handleSaveReminder}
+            setReminderTarget={setReminderTarget}
           />
         </div>
       </main>
-
+      {reminderTarget && (
+        <ReminderModal
+          intern={reminderTarget}
+          onClose={() => setReminderTarget(null)}
+          onSave={(reminder) => {
+            onSaveReminder(reminderTarget._id, reminder);
+            setReminderTarget(null);
+          }}
+          onRemove={() => {
+            onSaveReminder(reminderTarget._id, null);
+            setReminderTarget(null);
+          }}
+        ></ReminderModal>
+      )}
       <Footer />
     </div>
   );

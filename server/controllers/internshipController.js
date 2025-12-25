@@ -151,6 +151,7 @@ export const updateInternship = async (req, res) => {
     ) {
         internship.reminder = null;
     }
+
     const updated = await internship.save();
 
     res.json(updated);
@@ -188,6 +189,7 @@ export const updateBulkStatus = async (req, res) => {
     await Internship.updateMany(
         { _id: { $in: ids }, user: req.user._id },
         { $set: update }
+
     );
 
 
@@ -196,10 +198,16 @@ export const updateBulkStatus = async (req, res) => {
 
 // @route PUT /api/internships/:id/reminder
 export const setReminder = async (req, res) => {
-    const { type, remindAt } = req.body;
+    const { type, remindAt, location } = req.body;
 
     if (!type || !remindAt) {
         return res.status(400).json({ message: "Reminder type and time required" });
+    }
+
+    if (type === "Interview" && !location) {
+        return res.status(400).json({
+            message: "Interview location is required",
+        })
     }
 
     if (!["OA", "Interview"].includes(type)) {
@@ -234,6 +242,7 @@ export const setReminder = async (req, res) => {
     internship.reminder = {
         type,
         remindAt: remindDate,
+        location: type === "Interview" ? location : null,
     };
 
     await internship.save();
