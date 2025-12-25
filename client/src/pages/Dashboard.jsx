@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import RemindersPanel from "../components/RemindersPanel";
+import ReminderModal from "../components/ReminderModal";
 import "../confirm-dark.css";
 
 export default function Dashboard() {
@@ -132,14 +133,6 @@ export default function Dashboard() {
       toast.success("Successfully updated internships");
       const { data } = await API.get(
         `/api/internships?page=${page}&limit=${limit}`
-      );
-      setInternships((prev) =>
-        prev.map((i) =>
-          selectedIds.includes(i._id) &&
-          !["OA", "Interview"].includes(statusToUpdate)
-            ? { ...i, reminder: null }
-            : i
-        )
       );
 
       setTotal(data.total);
@@ -300,11 +293,11 @@ export default function Dashboard() {
           intern={reminderTarget}
           onClose={() => setReminderTarget(null)}
           onSave={(reminder) => {
-            onSaveReminder(reminderTarget._id, reminder);
+            handleSaveReminder(reminderTarget._id, reminder);
             setReminderTarget(null);
           }}
           onRemove={() => {
-            onSaveReminder(reminderTarget._id, null);
+            handleSaveReminder(reminderTarget._id, null);
             setReminderTarget(null);
           }}
         ></ReminderModal>
