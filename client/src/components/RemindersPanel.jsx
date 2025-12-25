@@ -12,16 +12,15 @@ function getTimeRemaining(date) {
 
 export default function RemindersPanel({ reminders, onOpen, onDelete }) {
   return (
-    <div className="w-full bg-gray-900/40 border border-gray-700/50 rounded-xl p-6">
+    <div className="w-full bg-gray-900/40 border border-gray-700/50 rounded-2xl p-8">
       {/* Header */}
       <div className="flex items-center gap-2 mb-5">
-        <Bell className="w-5 h-5 text-yellow-400" />
-        <h3 className="text-lg font-semibold text-gray-100">
+        <Bell className="w-6 h-6 text-yellow-400" />
+        <h3 className="text-xl font-semibold text-gray-100">
           Upcoming Reminders
         </h3>
       </div>
 
-      {/* Empty state */}
       {reminders.length === 0 ? (
         <p className="text-sm font-medium text-gray-400">
           No upcoming OA or interview reminders
@@ -42,28 +41,38 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
               intern.reminder.remindAt
             );
 
+            const locationText =
+              intern.status === "Interview"
+                ? intern.reminder.location || "Location not specified"
+                : "Online Assessment";
+
             return (
               <div
                 key={intern._id}
                 onClick={() => onOpen(intern)}
                 className="
                   w-full cursor-pointer
-                  rounded-lg
+                  rounded-xl
                   border border-gray-700/60
-                  p-3
+                  p-4
                   hover:bg-gray-800/60
                   transition
                 "
               >
-                <p className="text-sm font-semibold text-gray-100 truncate">
+                <p className="text-sm md:text-base font-semibold text-gray-100 truncate">
                   {intern.company}
                 </p>
-                <p className="text-xs text-gray-400 truncate">
+
+                <p className="text-sm text-gray-400 truncate">
                   {intern.role}
                 </p>
 
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                <p className="text-sm text-gray-500 truncate mt-0.5">
+                  {locationText}
+                </p>
+
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-300">
                     <CalendarClock className="w-4 h-4 text-blue-400" />
                     <span>{formattedDate}</span>
                     <span className="text-gray-400">
@@ -76,10 +85,10 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                       e.stopPropagation();
                       onDelete(intern._id);
                     }}
-                    className="text-gray-400 hover:text-red-400"
+                    className="text-gray-400 hover:text-red-400 text-sm font-semibold"
                     title="Remove reminder"
                   >
-                    🗑
+                    Delete
                   </button>
                 </div>
               </div>
