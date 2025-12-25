@@ -93,6 +93,28 @@ export default function Dashboard() {
     }
   };
 
+  const handleSaveReminder = async (id, reminder) => {
+    try {
+      if (reminder) {
+        await API.put(`/api/internships/${id}/reminder`, reminder);
+        toast.success("Reminder saved");
+      } else {
+        await API.delete(`/api/internships/${id}/reminder`);
+        toast.success("Reminder removed");
+      }
+
+      const { data } = await API.get(
+        `/api/internships?page=${page}&limit=${limit}`
+      );
+
+      setInternships(data.data);
+      setTotal(data.total);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update reminder");
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     toast.success("Successfully Logged Out");
@@ -246,6 +268,7 @@ export default function Dashboard() {
             setSortField={setSortField}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
+            onSaveReminder={handleSaveReminder}
           />
         </div>
       </main>

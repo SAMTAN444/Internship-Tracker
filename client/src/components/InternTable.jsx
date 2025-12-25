@@ -461,6 +461,10 @@ export default function InternTable({
             onSaveReminder(reminderTarget._id, reminder);
             setReminderTarget(null);
           }}
+          onRemove={() => {
+            onSaveReminder(reminderTarget._id, null);
+            setReminderTarget(null);
+          }}
         ></ReminderModal>
       )}
     </div>

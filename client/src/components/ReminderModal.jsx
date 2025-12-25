@@ -7,7 +7,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
   const modalRef = useRef(null);
 
   const existing = intern.reminder?.remindAt
-    ? newDate(intern.reminder.remindAt)
+    ? new Date(intern.reminder.remindAt)
     : null;
 
   const [date, setDate] = useState(existing ?? null);
@@ -20,6 +20,9 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
       : "09:00"
   );
   const [dateOpen, setDateOpen] = useState(false);
+  const [hour, setHour] = useState("09");
+  const [minute, setMinute] = useState("00");
+  const [period, setPeriod] = useState("AM");
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -31,12 +34,30 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
+  useEffect(() => {
+    if (!existing) return;
+
+    let h = existing.getHours();
+    const m = existing.getMinutes();
+
+    const p = h >= 12 ? "PM" : "AM";
+    if (h === 0) h = 12;
+    if (h > 12) h -= 12;
+
+    setHour(String(h).padStart(2, "0"));
+    setMinute(String(m).padStart(2, "0"));
+    setPeriod(p);
+  }, [intern]);
+
   function handleSave() {
     if (!date) return;
 
-    const [h, m] = time.split(":");
+    let h = parseInt(hour, 10);
+    if (period === "PM" && h !== 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+
     const remindAt = new Date(date);
-    remindAt.setHours(h, m, 0, 0);
+    remindAt.setHours(h, parseInt(minute), 0, 0);
 
     onSave({
       type: intern.status,
@@ -110,12 +131,49 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
         <label className="block text-sm text-gray-300 mb-2">
           Reminder time
         </label>
-        <input
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          className="input-dark w-full mb-6"
-        />
+
+        <div className="flex items-center gap-2 mb-6">
+          {/* Hour */}
+          <select
+            value={hour}
+            onChange={(e) => setHour(e.target.value)}
+            className="time-select"
+          >
+            {Array.from({ length: 12 }, (_, i) => {
+              const v = String(i + 1).padStart(2, "0");
+              return (
+                <option key={v} value={v}>
+                  {v}
+                </option>
+              );
+            })}
+          </select>
+
+          <span className="text-gray-400 font-semibold">:</span>
+
+          {/* Minute */}
+          <select
+            value={minute}
+            onChange={(e) => setMinute(e.target.value)}
+            className="time-select"
+          >
+            {["00", "15", "30", "45"].map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+
+          {/* AM / PM */}
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="time-select"
+          >
+            <option>AM</option>
+            <option>PM</option>
+          </select>
+        </div>
 
         {/* Actions */}
         <div className="flex items-center justify-between">
