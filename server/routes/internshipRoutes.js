@@ -8,12 +8,15 @@ import {
     getInternshipsById,
     setReminder,
     clearReminder,
+    getUpcomingReminders,
 } from "../controllers/internshipController.js"
 import { protect } from "../middleware/authMiddleware.js"
 
 const router = express.Router();
 
 router.put("/bulk-status", protect, updateBulkStatus);
+
+router.get("/reminders/upcoming", protect, getUpcomingReminders);
 
 router.route("/")
     .post(protect, createInternship)
@@ -28,5 +31,5 @@ router.route("/:id/reminder")
     .put(protect, setReminder)
     .delete(protect, clearReminder);
 
-    export default router;
+export default router;
 

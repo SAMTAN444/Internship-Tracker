@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [loading, setLoading] = useState(true);
   const [reminderTarget, setReminderTarget] = useState(null);
+  const [upcomingReminders, setUpcomingReminders] = useState([]);
 
   const addInternship = async (formData) => {
     try {
@@ -90,6 +91,7 @@ export default function Dashboard() {
         setInternships(data.data);
         setTotal(data.total);
       }
+      await fetchUpcomingReminders();
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete internship");
@@ -112,6 +114,8 @@ export default function Dashboard() {
 
       setInternships(data.data);
       setTotal(data.total);
+
+      await fetchUpcomingReminders();
     } catch (err) {
       console.error(err);
       toast.error("Failed to update reminder");
@@ -144,22 +148,23 @@ export default function Dashboard() {
     }
   };
 
-  const upcomingReminders = Array.isArray(internships)
-    ? internships
-        .filter((i) => i.reminder?.remindAt)
-        .filter((i) => new Date(i.reminder.remindAt) > new Date())
-        .sort(
-          (a, b) =>
-            new Date(a.reminder.remindAt) - new Date(b.reminder.remindAt)
-        )
-        .slice(0, 4)
-    : [];
+  const fetchUpcomingReminders = async () => {
+    try {
+      const { data } = await API.get(
+        "/api/internships/reminders/upcoming"
+      );
+      setUpcomingReminders(data);
+    } catch (err) {
+      toast.error("Failed to fetch reminders");
+    }
+  }
 
   useEffect(() => {
     async function init() {
       try {
         const res = await API.get("/api/auth/me");
         setUser(res.data);
+        await fetchUpcomingReminders();
       } catch {
         navigate("/login", { replace: true });
       } finally {

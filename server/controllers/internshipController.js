@@ -270,3 +270,26 @@ export const clearReminder = async (req, res) => {
 
     res.json({ message: "Reminder removed" });
 }
+
+export const getUpcomingReminders = async(req, res) => {
+    try {
+        const now = new Date();
+
+        const reminders = await Internship.find({
+            user: req.user._id,
+            "reminder.remindAt": { $gt: now },
+            status: { $in: ["OA", "Interview"] },
+        })
+            .select("_id company role status reminder")
+            .sort({"reminder.remindAt": 1})
+            .limit(4)
+            .lean();
+        
+        res.json(reminders);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Failed to fetch upcoming reminders",
+        })
+    }
+}
