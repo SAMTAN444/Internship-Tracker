@@ -31,8 +31,10 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [reminderTarget, setReminderTarget] = useState(null);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const addInternship = async (formData) => {
+    setActionLoading(true);
     try {
       await API.post("/api/internships", {
         company: formData.company,
@@ -57,6 +59,8 @@ export default function Dashboard() {
       console.error(err);
       toast.error("Failed to add internship");
       return false;
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -76,6 +80,7 @@ export default function Dashboard() {
     });
   };
   const actuallyDelete = async (id) => {
+    setActionLoading(true);
     try {
       await API.delete(`/api/internships/${id}`);
 
@@ -95,10 +100,13 @@ export default function Dashboard() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete internship");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleSaveReminder = async (id, reminder) => {
+    setActionLoading(true);
     try {
       if (reminder) {
         await API.put(`/api/internships/${id}/reminder`, reminder);
@@ -119,6 +127,8 @@ export default function Dashboard() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to update reminder");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -129,6 +139,7 @@ export default function Dashboard() {
   };
 
   const handleBulkUpdate = async () => {
+    setActionLoading(true);
     try {
       await API.put("/api/internships/bulk-status", {
         ids: selectedIds,
@@ -145,19 +156,19 @@ export default function Dashboard() {
     } catch (err) {
       console.error(err);
       toast.error("Failed to update internships");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const fetchUpcomingReminders = async () => {
     try {
-      const { data } = await API.get(
-        "/api/internships/reminders/upcoming"
-      );
+      const { data } = await API.get("/api/internships/reminders/upcoming");
       setUpcomingReminders(data);
     } catch (err) {
       toast.error("Failed to fetch reminders");
     }
-  }
+  };
 
   useEffect(() => {
     async function init() {
@@ -195,6 +206,16 @@ export default function Dashboard() {
       </div>
     );
   }
+  {
+    actionLoading && (
+      <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center">
+        <div className="bg-gray-900 px-6 py-4 rounded-xl border border-gray-700 flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-gray-500 border-t-teal-400 rounded-full animate-spin" />
+          <span className="text-sm text-gray-200 font-medium">Processing…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
@@ -223,6 +244,7 @@ export default function Dashboard() {
             </div>
 
             <button
+              disabled={actionLoading}
               className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg bg-red-700 text-white transition hover:bg-red-600"
               onClick={handleLogout}
             >
@@ -292,6 +314,7 @@ export default function Dashboard() {
             setSortOrder={setSortOrder}
             onSaveReminder={handleSaveReminder}
             setReminderTarget={setReminderTarget}
+            loading={actionLoading}
           />
         </div>
       </main>
@@ -307,6 +330,7 @@ export default function Dashboard() {
             handleSaveReminder(reminderTarget._id, null);
             setReminderTarget(null);
           }}
+          loading={actionLoading}
         ></ReminderModal>
       )}
       <Footer />

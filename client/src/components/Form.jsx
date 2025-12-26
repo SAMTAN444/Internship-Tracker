@@ -90,7 +90,7 @@ export default function Form({ onSubmit }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!form.company || !form.role || !form.cycle) {
+    if (!form.company || !form.role || !form.cycle || !form.appliedAt) {
         toast.error("Please fill in required fields");
         return;
     }
