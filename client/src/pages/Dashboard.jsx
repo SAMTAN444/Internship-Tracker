@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
-
 import EditInternshipModal from "../components/EditInternshipModal";
 import Footer from "../components/Footer";
 import logo from "../assets/logo.png";
@@ -13,6 +12,7 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 import RemindersPanel from "../components/RemindersPanel";
 import ReminderModal from "../components/ReminderModal";
 import "../confirm-dark.css";
+import gogginsImage from "../assets/goggins.png";
 
 export default function Dashboard() {
   const [internships, setInternships] = useState([]);
@@ -32,6 +32,23 @@ export default function Dashboard() {
   const [reminderTarget, setReminderTarget] = useState(null);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
+  const [scope, setScope] = useState("active");
+
+  const listParams = {
+    page,
+    limit,
+    q: searchquery,
+    field: searchField,
+    sortField,
+    sortOrder,
+    scope,
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    toast.success("Successfully Logged Out");
+    navigate("/login");
+  };
 
   const addInternship = async (formData) => {
     setActionLoading(true);
@@ -47,13 +64,22 @@ export default function Dashboard() {
       });
       toast.success("Internship added");
 
-      const { data } = await API.get(
-        `/api/internships?page=1&limit=${limit}&q=${searchquery}&field=${searchField}&sortField=${sortField}&sortOrder=${sortOrder}`
-      );
+      const { data } = await API.get("/api/internships", {
+        params: {
+          page: 1,
+          limit,
+          q: searchquery,
+          field: searchField,
+          sortField,
+          sortOrder,
+          scope,
+        },
+      });
 
       setPage(1);
       setInternships(data.data);
       setTotal(data.total);
+
       return true;
     } catch (err) {
       console.error(err);
@@ -86,9 +112,9 @@ export default function Dashboard() {
 
       toast.success("Internship deleted");
 
-      const { data } = await API.get(
-        `/api/internships?page=${page}&limit=${limit}`
-      );
+      const { data } = await API.get("/api/internships", {
+        params: listParams,
+      });
 
       if (data.data.length === 0 && page > 1) {
         setPage(page - 1);
@@ -116,9 +142,9 @@ export default function Dashboard() {
         toast.success("Reminder removed");
       }
 
-      const { data } = await API.get(
-        `/api/internships?page=${page}&limit=${limit}`
-      );
+      const { data } = await API.get("/api/internships", {
+        params: listParams,
+      });
 
       setInternships(data.data);
       setTotal(data.total);
@@ -132,27 +158,56 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    toast.success("Successfully Logged Out");
-    navigate("/login");
-  };
-
   const handleBulkUpdate = async () => {
+    if (selectedIds.length === 0) {
+      toast.info("No internships selected");
+      return;
+    }
+
+    // If user is in archived tab, the only valid action is Unarchive (Applied)
+    if (scope === "archived" && statusToUpdate !== "Applied") {
+      toast.info("Select Unarchive to move items back to Active");
+      return;
+    }
+
     setActionLoading(true);
+
     try {
       await API.put("/api/internships/bulk-status", {
         ids: selectedIds,
         status: statusToUpdate,
       });
-      toast.success("Successfully updated internships");
-      const { data } = await API.get(
-        `/api/internships?page=${page}&limit=${limit}`
-      );
 
-      setTotal(data.total);
-      setInternships(data.data);
+      toast.success("Successfully updated internships");
+
+      // ✅ Decide where user should land AFTER the action
+      const nextScope =
+        statusToUpdate === "Archived"
+          ? "archived"
+          : scope === "archived" && statusToUpdate === "Applied"
+            ? "active"
+            : scope;
+
+      // ✅ Update UI state
+      setScope(nextScope);
+      setPage(1);
       setSelectedIds([]);
+
+      // ✅ Fetch using nextScope (NOT old scope)
+      const { data } = await API.get("/api/internships", {
+        params: {
+          page: 1,
+          limit,
+          q: searchquery,
+          field: searchField,
+          sortField,
+          sortOrder,
+          scope: nextScope,
+        },
+      });
+
+      setInternships(data.data);
+      setTotal(data.total);
     } catch (err) {
       console.error(err);
       toast.error("Failed to update internships");
@@ -160,6 +215,7 @@ export default function Dashboard() {
       setActionLoading(false);
     }
   };
+
 
   const fetchUpcomingReminders = async () => {
     try {
@@ -186,17 +242,23 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    API.get(
-      `/api/internships?page=${page}&limit=${limit}&q=${searchquery}&field=${searchField}&sortField=${sortField}&sortOrder=${sortOrder}`
-    )
+    API.get("/api/internships", {
+      params: {
+        page,
+        limit,
+        q: searchquery,
+        field: searchField,
+        sortField,
+        sortOrder,
+        scope, // ✅ THIS is the key
+      },
+    })
       .then((res) => {
         setInternships(res.data.data);
         setTotal(res.data.total);
       })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [page, searchquery, searchField, sortField, sortOrder]);
+      .catch(console.error);
+  }, [page, limit, searchquery, searchField, sortField, sortOrder, scope]);
 
   if (loading) {
     return (
@@ -206,19 +268,19 @@ export default function Dashboard() {
       </div>
     );
   }
-  {
-    actionLoading && (
-      <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-        <div className="bg-gray-900 px-6 py-4 rounded-xl border border-gray-700 flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-gray-500 border-t-teal-400 rounded-full animate-spin" />
-          <span className="text-sm text-gray-200 font-medium">Processing…</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
+      {actionLoading && (
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-gray-900 px-6 py-4 rounded-xl border border-gray-700 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-gray-500 border-t-teal-400 rounded-full animate-spin" />
+            <span className="text-sm text-gray-200 font-medium">
+              Processing…
+            </span>
+          </div>
+        </div>
+      )}
       {/* Top Bar */}
       <header className="w-full border-b border-gray-800 bg-gray-700">
         <div className="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-3 md:px-6 md:py-4 gap-2 overflow-x-auto">
@@ -259,9 +321,10 @@ export default function Dashboard() {
           intern={editing}
           onClose={() => setEditing(null)}
           onSave={async () => {
-            const { data } = await API.get(
-              `/api/internships?page=${page}&limit=${limit}`
-            );
+            const { data } = await API.get("/api/internships", {
+              params: listParams,
+            });
+
             setInternships(data.data);
             setTotal(data.total);
             setEditing(null);
@@ -269,20 +332,53 @@ export default function Dashboard() {
         />
       )}
 
-      <section className="relative z-50 px-4 py-6 md:mx-6 md:py-10 flex justify-center">
+      <section className="relative z-10 px-4 py-6 md:mx-6 md:py-10 flex justify-center">
         <div className="w-full max-w-screen-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-8 p-4 md:p-12 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-8 p-4 md:p-12 items-stretch">
             {/* LEFT */}
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-6 md:h-full min-h-0">
               <RemindersPanel
                 reminders={upcomingReminders}
                 onOpen={(intern) => setReminderTarget(intern)}
                 onDelete={(id) => handleSaveReminder(id, null)}
               />
+
+              {/* Goggins Card (separate card below reminders) */}
+              <div
+                className="
+                  w-full
+                  bg-gray-900/40 border border-gray-700/50 rounded-2xl
+                  p-6
+                  md:flex-1
+                  min-h-0
+                  flex flex-col
+                "
+              >
+                <div className="flex-1 min-h-0 flex items-center justify-center">
+                  <img
+                    src={gogginsImage}
+                    alt="David Goggins"
+                    className="
+                      w-auto
+                      max-w-55 md:max-w-60
+                      max-h-40 md:max-h-47.5 lg:max-h-55
+                      object-contain
+                      select-none
+                      opacity-95
+                      drop-shadow-[0_14px_24px_rgba(0,0,0,0.45)]
+                    "
+                    draggable="false"
+                  />
+                </div>
+
+                <p className="mt-3 text-center text-xs text-gray-400">
+                  Stay hard. Keep applying.
+                </p>
+              </div>
             </div>
 
             {/* RIGHT */}
-            <div className="flex flex-col">
+            <div className="flex flex-col md:h-full">
               <Form onSubmit={addInternship} />
             </div>
           </div>
@@ -315,6 +411,8 @@ export default function Dashboard() {
             onSaveReminder={handleSaveReminder}
             setReminderTarget={setReminderTarget}
             loading={actionLoading}
+            scope={scope}
+            setScope={setScope}
           />
         </div>
       </main>

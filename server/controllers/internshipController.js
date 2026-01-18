@@ -12,11 +12,34 @@ export const createInternship = async (req, res) => {
 
 // @route GET /api/internships
 export const getInternships = async (req, res) => {
-    const { page = 1, limit = 10, q = "", field = "", sortField = "", sortOrder = "asc" } = req.query;
+    const {
+        page = 1,
+        limit = 10,
+        q = "",
+        field = "",
+        sortField = "",
+        sortOrder = "asc",
+        scope = "active", // ✅ NEW: "active" | "archived"
+    } = req.query;
 
-    const query = { user: req.user._id };
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    // If searching
+    const baseQuery = { user: req.user._id };
+
+    // ✅ Scope filter
+    // active = everything except Archived
+    // archived = only Archived
+    if (scope === "archived") {
+        baseQuery.status = "Archived";
+    } else {
+        baseQuery.status = { $ne: "Archived" };
+    }
+
+    const query = { ...baseQuery };
+
+    // Search
     if (q) {
         const searchRegex = new RegExp(q, "i");
         if (field) {
@@ -30,92 +53,58 @@ export const getInternships = async (req, res) => {
             ];
         }
     }
-    const skip = (page - 1) * limit
 
-    const sortOptions = {};
-    if (sortField) {
-        sortOptions[sortField] = sortOrder === "asc" ? 1 : -1;
-    } else {
-        sortOptions["createdAt"] = -1;
-    }
+    const cycleOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4, "6-Month": 5 };
+    const statusOrder = { Applied: 1, OA: 2, Interview: 3, Offer: 4, Rejected: 5, Archived: 6 };
 
-    const cycleOrder = {
-        Spring: 1,
-        Summer: 2,
-        Fall: 3,
-        Winter: 4,
-        "6-Month": 5,
-    };
-
-    const statusOrder = {
-        Applied: 1,
-        OA: 2,
-        Interview: 3,
-        Offer: 4,
-        Rejected: 5,
+    const sortStage = {
+        ...(sortField === "cycle" ? { cycleSort: sortOrder === "asc" ? 1 : -1 } : {}),
+        ...(sortField === "status" ? { statusSort: sortOrder === "asc" ? 1 : -1 } : {}),
+        ...(sortField === "appliedAt" ? { appliedAt: sortOrder === "asc" ? 1 : -1 } : {}),
+        ...(sortField === "" ? { createdAt: -1 } : {}),
     };
 
     const [data, total] = await Promise.all([
         Internship.aggregate([
             { $match: query },
-
-            // Add custom sorting fields
             {
                 $addFields: {
                     cycleSort: {
                         $switch: {
                             branches: Object.entries(cycleOrder).map(([key, val]) => ({
                                 case: { $eq: ["$cycle", key] },
-                                then: val
+                                then: val,
                             })),
-                            default: 99
-                        }
+                            default: 99,
+                        },
                     },
                     statusSort: {
                         $switch: {
                             branches: Object.entries(statusOrder).map(([key, val]) => ({
                                 case: { $eq: ["$status", key] },
-                                then: val
+                                then: val,
                             })),
-                            default: 99
-                        }
-                    }
-                }
+                            default: 99,
+                        },
+                    },
+                },
             },
-
-            // Now SORT depending on what sortField is
-            {
-                $sort: {
-                    ...(sortField === "cycle"
-                        ? { cycleSort: sortOrder === "asc" ? 1 : -1 }
-                        : {}),
-                    ...(sortField === "status"
-                        ? { statusSort: sortOrder === "asc" ? 1 : -1 }
-                        : {}),
-                    ...(sortField === "appliedAt"
-                        ? { appliedAt: sortOrder === "asc" ? 1 : -1 }
-                        : {}),
-                    // default fallback sort:
-                    ...(sortField === ""
-                        ? { createdAt: -1 }
-                        : {})
-                }
-            },
-
+            { $sort: sortStage },
             { $skip: skip },
-            { $limit: parseInt(limit) }
+            { $limit: limitNum },
         ]),
-        Internship.countDocuments(query)
-    ]);
+        Internship.countDocuments(query),
 
+    ]);
 
     res.json({
         data,
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page: pageNum,
+        limit: limitNum,
     });
 };
+
 
 // @route GET /api/internships/:id
 export const getInternshipsById = async (req, res) => {
@@ -271,7 +260,7 @@ export const clearReminder = async (req, res) => {
     res.json({ message: "Reminder removed" });
 }
 
-export const getUpcomingReminders = async(req, res) => {
+export const getUpcomingReminders = async (req, res) => {
     try {
         const now = new Date();
 
@@ -281,10 +270,10 @@ export const getUpcomingReminders = async(req, res) => {
             status: { $in: ["OA", "Interview"] },
         })
             .select("_id company role status reminder")
-            .sort({"reminder.remindAt": 1})
+            .sort({ "reminder.remindAt": 1 })
             .limit(4)
             .lean();
-        
+
         res.json(reminders);
     } catch (err) {
         console.error(err);

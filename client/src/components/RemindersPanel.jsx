@@ -26,10 +26,17 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
           No upcoming OA or interview reminders
         </p>
       ) : (
-        <div className="space-y-3">
+        <div
+          className="space-y-3
+          overflow-auto
+          pr-2
+          max-h-55 md:max-h-75
+          scrollbar-thin scrollbar-thum-gray-700/70 scrollbar-track-transparent
+        "
+        >
           {reminders.map((intern) => {
             const formattedDate = new Date(
-              intern.reminder.remindAt
+              intern.reminder.remindAt,
             ).toLocaleString("en-GB", {
               day: "numeric",
               month: "short",
@@ -37,9 +44,7 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
               minute: "2-digit",
             });
 
-            const timeRemaining = getTimeRemaining(
-              intern.reminder.remindAt
-            );
+            const timeRemaining = getTimeRemaining(intern.reminder.remindAt);
 
             const locationText =
               intern.status === "Interview"
@@ -63,9 +68,7 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                   {intern.company}
                 </p>
 
-                <p className="text-sm text-gray-400 truncate">
-                  {intern.role}
-                </p>
+                <p className="text-sm text-gray-400 truncate">{intern.role}</p>
 
                 <p className="text-sm text-gray-500 truncate mt-0.5">
                   {locationText}
@@ -75,9 +78,7 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                   <div className="flex items-center gap-2 text-sm text-gray-300">
                     <CalendarClock className="w-4 h-4 text-blue-400" />
                     <span>{formattedDate}</span>
-                    <span className="text-gray-400">
-                      • {timeRemaining}
-                    </span>
+                    <span className="text-gray-400">• {timeRemaining}</span>
                   </div>
 
                   <button

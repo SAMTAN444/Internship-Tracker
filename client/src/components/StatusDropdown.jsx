@@ -6,10 +6,11 @@ import {
 } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
 
-const statusOptions = ["Applied", "OA", "Interview", "Offer", "Rejected"];
-
-export default function StatusDropdown({ value, setValue }) {
-    
+export default function StatusDropdown({ value, setValue, scope }) {
+  const statusOptions =
+    scope === "archived"
+      ? ["Applied"] // Unarchive
+      : ["Applied", "OA", "Interview", "Offer", "Rejected", "Archived"];
   return (
     <Listbox value={value} onChange={setValue}>
       <div className="relative inline-block">
@@ -23,7 +24,10 @@ export default function StatusDropdown({ value, setValue }) {
             hover:border-gray-500
             focus:outline-none"
         >
-          <span>{value}</span>
+          <span>
+            {scope === "archived" && value === "Applied" ? "Unarchive" : value}
+          </span>
+
           <ChevronDown className="w-4 h-4 text-gray-400" />
         </ListboxButton>
 
@@ -38,13 +42,14 @@ export default function StatusDropdown({ value, setValue }) {
               value={status}
               className={({ active, selected }) =>
                 `
-                cursor-pointer select-none px-4 py-2 text-sm md:text-block
+                cursor-pointer select-none px-4 py-2 text-sm
+                ${status === "Archived" ? "text-gray-400" : "text-gray-200"}
                 ${active ? "bg-gray-700 text-white" : ""}
-                ${selected ? "bg-gray-800  font-semibold" : ""}
+                ${selected ? "bg-gray-800 font-semibold" : ""}
                 `
               }
             >
-              {status}
+              {status === "Archived" ? "Archive" : status}
             </ListboxOption>
           ))}
         </ListboxOptions>

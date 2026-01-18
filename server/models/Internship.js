@@ -19,7 +19,7 @@ const internshipSchema = new mongoose.Schema (
         },
         status: {
             type: String,
-            enum: ["Applied", "OA", "Interview", "Offer", "Rejected"],
+            enum: ["Applied", "OA", "Interview", "Offer", "Rejected", "Archived"],
             default: "Applied",
         },
         cycle: {

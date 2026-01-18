@@ -33,8 +33,9 @@ export default function InternTable({
   setSortField,
   sortOrder,
   setSortOrder,
-  onSaveReminder,
   setReminderTarget,
+  scope,
+  setScope,
 }) {
   const cycleStyles = {
     Spring: "bg-green-500/15 text-green-300",
@@ -58,6 +59,7 @@ export default function InternTable({
     Interview: "bg-yellow-600 text-white",
     Offer: "bg-green-600 text-white",
     Rejected: "bg-red-500 text-white",
+    Archived: "bg-gray-700 text-gray-300 border border-gray-600",
   };
 
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -67,7 +69,7 @@ export default function InternTable({
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -105,11 +107,45 @@ export default function InternTable({
             Track and manage your applications
           </p>
         </div>
+        {/* Tabs (above search) */}
+        <div className="mt-4 flex items-center gap-2">
+          <button
+            onClick={() => {
+              setScope("active");
+              console.log("tab -> archived click");
+              setPage(1);
+              setSelectedIds([]);
+              setStatusToUpdate("Applied");
+            }}
+            className={`
+      flex-1 h-10 rounded-lg text-sm font-semibold
+      border border-gray-700/60
+      ${scope === "active" ? "bg-teal-700/60 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
+    `}
+          >
+            Active Apps
+          </button>
+
+          <button
+            onClick={() => {
+              setScope("archived");
+              setPage(1);
+              setSelectedIds([]);
+              setStatusToUpdate("Applied");
+            }}
+            className={`
+      flex-1 h-10 rounded-lg text-sm font-semibold
+      border border-gray-700/60
+      ${scope === "archived" ? "bg-teal-700/60 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
+    `}
+          >
+            Archived Apps
+          </button>
+        </div>
 
         {/* Row 2 - Search + Filter + Status + Update Button */}
         {/* CONTROLS */}
-        <div className="mt-6 space-y-6">
-          {/* Search + Filter */}
+        <div className="mt-6 space-y-4">
           {/* Search */}
           <input
             type="text"
@@ -122,63 +158,149 @@ export default function InternTable({
             className="input-dark w-full"
           />
 
-          {/* Filter + Reset (mobile same row) */}
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <FilterDropdown
-              value={searchField}
-              setValue={(val) => {
-                setSearchField(val);
-                setPage(1);
-              }}
-            />
+          {/* ===== MOBILE (<= md) ===== */}
+          <div className="grid gap-3 md:hidden">
+            {/* Row 1: Filter + Reset */}
+            <div className="grid grid-cols-[1fr_96px] gap-3 items-center">
+              <div className="w-full min-w-0">
+                <FilterDropdown
+                  value={searchField}
+                  setValue={(val) => {
+                    setSearchField(val);
+                    setPage(1);
+                  }}
+                />
+              </div>
 
-            <button
-              disabled={!searchquery && !searchField && !sortField}
-              onClick={() => {
-                setSearchQuery("");
-                setSearchField("");
-                setSortField("");
-                setSortOrder("asc");
-                setPage(1);
-              }}
-              className="
-      px-4 py-2
-      rounded-lg
-      text-sm font-semibold
-      bg-gray-700 text-gray-200
-      disabled:opacity-40 disabled:cursor-not-allowed
-      hover:bg-gray-600
-    "
-            >
-              Reset
-            </button>
+              <button
+                disabled={!searchquery && !searchField && !sortField}
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchField("");
+                  setSortField("");
+                  setSortOrder("asc");
+                  setPage(1);
+                }}
+                className="
+          h-10 w-24
+          rounded-lg text-sm font-semibold
+          bg-gray-700/60 text-gray-200
+          hover:bg-gray-600/70
+          disabled:opacity-40 disabled:cursor-not-allowed
+        "
+              >
+                Reset
+              </button>
+            </div>
+
+            {/* Row 2: Status (same width as Filter) + Update */}
+            <div className="grid grid-cols-[1fr_96px] gap-3 items-center">
+              <div className="w-full min-w-0">
+                <StatusDropdown
+                  value={statusToUpdate}
+                  setValue={setStatusToUpdate}
+                  scope={scope}
+                />
+              </div>
+
+              <button
+                disabled={selectedIds.length === 0}
+                onClick={onBulkUpdate}
+                className={`
+          h-10 w-24
+          rounded-lg text-sm font-semibold transition
+          ${
+            selectedIds.length === 0
+              ? "bg-gray-700/60 text-gray-200 hover:bg-gray-600/70 disabled:opacity-40 disabled:cursor-not-allowed"
+              : "bg-teal-700 text-white hover:bg-teal-600"
+          }
+        `}
+              >
+                Update
+              </button>
+            </div>
+
+            {/* Row 3: selected count on RIGHT (below Update row) */}
+            <div className="grid grid-cols-[1fr_96px]">
+              <div />
+              <span className="text-sm text-gray-300 text-right">
+                {selectedIds.length} selected
+              </span>
+            </div>
           </div>
 
-          {/* Bulk actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <StatusDropdown
-              value={statusToUpdate}
-              setValue={setStatusToUpdate}
-            />
+          {/* ===== DESKTOP (>= md) ===== */}
+          <div className="hidden md:block">
+            {/* Row 1: everything on ONE row */}
+            <div className="flex items-center gap-2">
+              {/* Left: Filter + Reset */}
+              <div className="flex items-center gap-2">
+                <div className="w-47.5">
+                  <FilterDropdown
+                    value={searchField}
+                    setValue={(val) => {
+                      setSearchField(val);
+                      setPage(1);
+                    }}
+                  />
+                </div>
 
-            <button
-              disabled={selectedIds.length === 0}
-              onClick={onBulkUpdate}
-              className={`
-        px-4 py-2 rounded-lg font-semibold
-        ${
-          selectedIds.length === 0
-            ? "bg-gray-700 text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-600"
-            : "bg-teal-700 text-white hover:bg-teal-600"
-        }
-      `}
-            >
-              Update status
-            </button>
+                <button
+                  disabled={!searchquery && !searchField && !sortField}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchField("");
+                    setSortField("");
+                    setSortOrder("asc");
+                    setPage(1);
+                  }}
+                  className="
+          h-10 px-3 rounded-lg text-sm font-semibold
+          bg-gray-700/60 text-gray-200
+          hover:bg-gray-600/70
+          disabled:opacity-40 disabled:cursor-not-allowed
+        "
+                >
+                  Reset
+                </button>
+              </div>
 
-            <span className="text-sm text-gray-400 sm:ml-auto">
-              {selectedIds.length} selected
-            </span>
+              {/* Spacer */}
+              <div className="flex-1" />
+
+              {/* Right: Applied + Update status (SAME ROW) */}
+              <div className="flex items-center gap-2">
+                <div className="w-42.5">
+                  <StatusDropdown
+                    value={statusToUpdate}
+                    setValue={setStatusToUpdate}
+                    scope={scope}
+                  />
+                </div>
+
+                <button
+                  disabled={selectedIds.length === 0}
+                  onClick={onBulkUpdate}
+                  className={`
+          h-10 px-3 rounded-lg text-sm font-semibold transition whitespace-nowrap
+          ${
+            selectedIds.length === 0
+              ? "bg-gray-700/60 text-gray-200 hover:bg-gray-600/70 disabled:opacity-40 disabled:cursor-not-allowed"
+              : "bg-teal-700 text-white hover:bg-teal-600"
+          }
+        `}
+                >
+                  Update status
+                </button>
+              </div>
+            </div>
+
+            {/* Row 2: selected BELOW the whole row, aligned right */}
+            <div className="mt-2 flex justify-end">
+              <span className="text-sm text-gray-300">
+                {selectedIds.length} selected
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -353,7 +475,7 @@ export default function InternTable({
                     <button
                       onClick={() =>
                         setOpenMenuId(
-                          openMenuId === intern._id ? null : intern._id
+                          openMenuId === intern._id ? null : intern._id,
                         )
                       }
                       className="p-2 rounded-lg hover:bg-gray-700"
@@ -381,18 +503,21 @@ export default function InternTable({
                       )}
 
                       {/* Reminder - only for OA / Interview */}
-                      {(intern.status === "OA" || intern.status === "Interview") && (
-                        <button 
+                      {(intern.status === "OA" ||
+                        intern.status === "Interview") && (
+                        <button
                           onClick={() => {
                             setReminderTarget(intern);
                             setOpenMenuId(null);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
                         >
-                          <Bell 
-                          className={`w-4 h-4 ${
-                            intern.reminder ? "text-yellow-400" : "text-gray-400"
-                          }`} 
+                          <Bell
+                            className={`w-4 h-4 ${
+                              intern.reminder
+                                ? "text-yellow-400"
+                                : "text-gray-400"
+                            }`}
                           />
                           {intern.reminder ? "Edit Reminder" : "Set Reminder"}
                         </button>
@@ -453,7 +578,6 @@ export default function InternTable({
           </button>
         </div>
       </div>
-      
     </div>
   );
 }
