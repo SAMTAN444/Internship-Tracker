@@ -220,7 +220,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
                 onClick={() => setDateOpen(!dateOpen)}
                 className="input-dark flex items-center gap-3"
               >
-                <CalendarClock className="w-5 h-5 text-blue-400" />
+                <CalendarClock className="w-5 h-5 text-blue-300" />
                 {new Date(form.appliedAt).toLocaleDateString("en-GB")}
               </button>
 

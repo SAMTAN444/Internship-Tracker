@@ -34,7 +34,7 @@ export default function Login() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800">
-        <div className="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-gray-600 border-t-teal-500 rounded-full animate-spin" />
         <p className="mt-4 text-sm text-gray-400">Loading dashboard…</p>
       </div>
     );
@@ -116,7 +116,7 @@ export default function Login() {
                 <div className="mb-6">
                   <button
                     type="submit"
-                    className="w-full px-3 py-4 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none"
+                    className="w-full px-3 py-4 text-white bg-teal-600 rounded-md hover:bg-teal-500 focus:outline-none"
                   >
                     Log In
                   </button>
@@ -126,7 +126,7 @@ export default function Login() {
                   Don&apos;t have an account yet?{" "}
                   <a
                     href="/register"
-                    className="text-indigo-500 hover:underlin hover:text-indigo-600"
+                    className="text-teal-600 hover:underlin hover:text-teal-500"
                   >
                     Sign up
                   </a>

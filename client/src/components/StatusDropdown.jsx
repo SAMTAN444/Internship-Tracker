@@ -11,6 +11,12 @@ export default function StatusDropdown({ value, setValue, scope }) {
     scope === "archived"
       ? ["Applied"] // Unarchive
       : ["Applied", "OA", "Interview", "Offer", "Rejected", "Archived"];
+  // DISPLAY labels
+  const labelFor = (status) => {
+    if (scope === "archived" && status === "Applied") return "Unarchive";
+    if (scope !== "archived" && status === "Archived") return "Archive";
+    return status;
+  };
   return (
     <Listbox value={value} onChange={setValue}>
       <div className="relative inline-block">
@@ -49,7 +55,7 @@ export default function StatusDropdown({ value, setValue, scope }) {
                 `
               }
             >
-              {status === "Archived" ? "Archive" : status}
+              {labelFor(status)}
             </ListboxOption>
           ))}
         </ListboxOptions>

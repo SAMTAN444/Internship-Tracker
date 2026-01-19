@@ -75,10 +75,10 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                 </p>
 
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-gray-300 whitespace-nowrap">
                     <CalendarClock className="w-4 h-4 text-blue-400" />
                     <span>{formattedDate}</span>
-                    <span className="text-gray-400">• {timeRemaining}</span>
+                    <span className="text-teal-500">{timeRemaining}</span>
                   </div>
 
                   <button

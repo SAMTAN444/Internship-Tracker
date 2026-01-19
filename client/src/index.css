@@ -63,3 +63,33 @@ textarea:-webkit-autofill:focus {
   border: 1px solid rgb(55 65 81); /* border-gray-700 */
   transition: background-color 9999s ease-in-out 0s;
 }
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 700ms ease-out both;
+}
+
+.animate-fade-up-delay-1 {
+  animation: fadeUp 700ms ease-out 120ms both;
+}
+
+.animate-fade-up-delay-2 {
+  animation: fadeUp 700ms ease-out 240ms both;
+}
+
+.animate-fade-up-delay-3 {
+  animation: fadeUp 700ms ease-out 360ms both;
+}
+
+.animate-float-down {
+  animation: floatDown 1200ms ease-in-out infinite;
+}

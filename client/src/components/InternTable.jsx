@@ -110,6 +110,7 @@ export default function InternTable({
         {/* Tabs (above search) */}
         <div className="mt-4 flex items-center gap-2">
           <button
+            type="button"
             onClick={() => {
               setScope("active");
               console.log("tab -> archived click");
@@ -120,13 +121,14 @@ export default function InternTable({
             className={`
       flex-1 h-10 rounded-lg text-sm font-semibold
       border border-gray-700/60
-      ${scope === "active" ? "bg-teal-700/60 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
+      ${scope === "active" ? "bg-teal-700 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
     `}
           >
             Active Apps
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setScope("archived");
               setPage(1);
@@ -136,7 +138,7 @@ export default function InternTable({
             className={`
       flex-1 h-10 rounded-lg text-sm font-semibold
       border border-gray-700/60
-      ${scope === "archived" ? "bg-teal-700/60 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
+      ${scope === "archived" ? "bg-teal-700 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
     `}
           >
             Archived Apps
@@ -256,7 +258,7 @@ export default function InternTable({
                   }}
                   className="
           h-10 px-3 rounded-lg text-sm font-semibold
-          bg-gray-700/60 text-gray-200
+          bg-gray-600 text-white
           hover:bg-gray-600/70
           disabled:opacity-40 disabled:cursor-not-allowed
         "

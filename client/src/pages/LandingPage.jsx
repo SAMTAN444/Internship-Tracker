@@ -1,34 +1,86 @@
+import { useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, Calendar, FileText, Archive } from "lucide-react";
+import {
+  CheckCircle,
+  Calendar,
+  FileText,
+  Archive,
+  ChevronDown,
+  Lock,
+} from "lucide-react";
 import logo from "../assets/logo.png";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const howItWorksRef = useRef(null);
+
+  const steps = useMemo(
+    () => [
+      {
+        number: 1,
+        icon: CheckCircle,
+        title: "Add application",
+        description:
+          "Fill up a quick & simple card about the internship you are applying for including date, role, company, and cycle.",
+      },
+      {
+        number: 2,
+        icon: Calendar,
+        title: "Update Status",
+        description:
+          "Update the status of your application as you progress through the application process.",
+      },
+      {
+        number: 3,
+        icon: FileText,
+        title: "Add Notes",
+        description:
+          "Document your journey with rich markdown notes. Track  important details for each application.",
+      },
+      {
+        number: 4,
+        icon: Archive,
+        title: "Archive",
+        description:
+          "At the end of application season, select all applications to archive to prepare for next season.",
+      },
+    ],
+    [],
+  );
+
+  const scrollToHowItWorks = () => {
+    howItWorksRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
+    <div className="min-h-screen text-gray-100 bg-[#070B14]">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-gray-900/80 backdrop-blur-lg border-b border-gray-700/50">
+      <header className="fixed top-0 w-full z-50 bg-[#070B14]/75 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Trackly Logo" className="w-10 h-10 opacity-90" />
-            <span className="text-2xl font-bold bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <img
+              src={logo}
+              alt="Trackly Logo"
+              className="w-10 h-10 opacity-90"
+            />
+            <span className="text-xl md:text-2xl font-semibold tracking-tight">
               Trackly
             </span>
           </div>
 
-          {/* Auth Buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             <button
               onClick={() => navigate("/login")}
-              className="px-5 py-2 text-gray-300 hover:text-white transition-colors font-medium"
+              className="px-4 py-2 text-gray-300 hover:text-white transition-colors font-medium"
             >
               Sign In
             </button>
             <button
               onClick={() => navigate("/register")}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-blue-600/30"
+              className="px-5 py-2 rounded-lg font-semibold bg-teal-600 hover:bg-teal-500 transition shadow-lg shadow-teal-600/25"
             >
               Get Started
             </button>
@@ -36,145 +88,123 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          {/* Trust Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-full mb-8">
-            <span className="text-yellow-400 text-xl">⭐</span>
-            <span className="text-yellow-300 font-medium">Trusted by 800+ users</span>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6">
-            <span className="bg-linear-to-r from-purple-400 via-pink-400 to-purple-500 bg-clip-text text-transparent">
-              STAY
-            </span>
+      {/* HERO (full screen) */}
+      <section className="relative min-h-screen px-6 pt-24 md:pt-28 flex items-center">
+        <div className="w-full max-w-5xl mx-auto text-center">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-100 animate-fade-up">
+            <span className="text-gray-100">STAY</span>
             <br />
-            <span className="bg-linear-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              ORGANISED
-            </span>
+            <span className="text-teal-500">ORGANISED</span>
           </h1>
 
-          {/* Decorative Line */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="h-0.5 w-20 bg-linear-to-r from-transparent to-purple-500"></div>
-            <div className="w-12 h-12 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl">
-              &
+          {/* Minimal divider */}
+          <div className="mt-6 flex items-center justify-center gap-4 animate-fade-up-delay-1">
+            <div className="h-px w-20 bg-white/30" />
+            <div className="w-10 h-10 rounded-full bg-white/20 border border-white/25 shadow-lg shadow-black/30 flex items-center justify-center">
+              <span className="text-sm font-bold text-white">&</span>
             </div>
-            <div className="h-0.5 w-20 bg-linear-to-l from-transparent to-purple-500"></div>
+            <div className="h-px w-20 bg-white/30" />
           </div>
 
-          {/* Secondary Heading */}
-          <div className="inline-block px-8 py-6 bg-linear-to-r from-green-400/20 to-teal-400/20 border border-green-400/30 rounded-2xl mb-8 backdrop-blur-sm">
-            <h2 className="text-3xl md:text-5xl font-bold">
-              <span className="text-gray-300">SECURE</span>
+          {/* Secondary Heading Card */}
+          <div className="mt-8 inline-block rounded-2xl border border-white/10 bg-white/10 backdrop-blur-md px-10 py-7 shadow-xl shadow-black/20 animate-fade-up-delay-2">
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+              <span className="text-gray-200">SECURE</span>
               <br />
-              <span className="text-green-400">INTERNSHIPS</span>
+              <span className="inline-flex items-center justify-center gap-3 text-teal-400">
+                <Lock className="w-7 h-7 md:w-9 md:h-9 text-teal-400" />
+                INTERNSHIPS
+              </span>
             </h2>
+
+            {/* tiny accent line for warmth (no gradients) */}
+            <div className="mt-4 mx-auto h-0.5 w-16 rounded-full bg-white" />
           </div>
 
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-12">
-            Stop juggling spreadsheets. One place to track every application from{" "}
-            <span className="px-3 py-1 bg-gray-700/50 rounded-md text-gray-300 font-medium">
-              applied
+          {/* Subtitle (MATCH your InternTable statusStyles) */}
+          <p className="mt-10 text-base md:text-lg text-gray-400 max-w-5xl mx-auto leading-relaxed animate-fade-up-delay-2">
+            Stop juggling spreadsheets. One place to track every application
+            from{" "}
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-600 text-white font-medium">
+              Applied
             </span>{" "}
             to{" "}
-            <span className="px-3 py-1 bg-blue-700/30 rounded-md text-blue-300 font-medium">
-              accepted
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-600 text-white font-medium">
+              Offer
             </span>
           </p>
 
-          {/* CTA Button */}
-          <button
-            onClick={() => navigate("/register")}
-            className="group px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-2xl shadow-blue-600/40 flex items-center gap-3 mx-auto"
-          >
-            Get Started
-            <span className="transform group-hover:translate-x-1 transition-transform">→</span>
-          </button>
+          <div className="mt-10 flex justify-center animate-fade-up-delay-3">
+            <button
+              onClick={() => navigate("/register")}
+              className="
+                    group inline-flex items-center gap-3
+                    px-7 py-3.5 rounded-xl font-semibold
+                    bg-teal-600 hover:bg-teal-500
+                    text-white
+                    shadow-lg shadow-black/30
+                    ring-1 ring-teal-400/25 hover:ring-teal-300/35
+                    transition
+                "
+            >
+              Get Started
+              <span className="transform group-hover:translate-x-1 transition-transform">
+                →
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* Scroll prompt */}
+        <button
+          type="button"
+          onClick={scrollToHowItWorks}
+          className="
+            absolute bottom-8 left-1/2 -translate-x-1/2
+            flex flex-col items-center gap-2
+            text-gray-300/80 hover:text-gray-100
+            transition
+            animate-fade-up-delay-3
+          "
+          aria-label="Scroll to How it works"
+        >
+          <span className="text-sm tracking-wide">Scroll</span>
+          <ChevronDown className="w-6 h-6 text-teal-300 animate-float-down" />
+        </button>
       </section>
 
-      {/* How to Use Section */}
-      <section className="py-20 px-6 bg-linear-to-b from-gray-900 to-gray-800">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              How to use <span className="text-blue-400">Trackly</span>?
+      {/* HOW IT WORKS */}
+      <section ref={howItWorksRef} className="relative py-20 md:py-28">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+              How to use{" "}
+              <span className="text-teal-500 font-extrabold">Trackly</span>
             </h2>
-            <p className="text-gray-400 text-lg">
-              Get started in minutes with our simple workflow
+            <p className="mt-3 text-gray-400 text-lg">
+              Get started in minutes with a simple workflow.
             </p>
           </div>
 
-          {/* Timeline */}
-          <div className="relative">
-            {/* Vertical Line */}
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-linear-to-b from-purple-500 via-blue-500 to-green-500"></div>
+          <Timeline steps={steps} />
+        </div>
 
-            {/* Steps */}
-            <div className="space-y-12">
-              {/* Step 1 */}
-              <TimelineStep
-                number={1}
-                icon={<CheckCircle className="w-6 h-6" />}
-                title="Add your internship application"
-                description="Fill up a quick & simple card about the internship you are applying for and submit it."
-                color="purple"
-                align="right"
-              />
-
-              {/* Step 2 */}
-              <TimelineStep
-                number={2}
-                icon={<Calendar className="w-6 h-6" />}
-                title="Update Status"
-                description="Update the status of your application as you progress through the application process."
-                color="blue"
-                align="left"
-              />
-
-              {/* Step 3 */}
-              <TimelineStep
-                number={3}
-                icon={<FileText className="w-6 h-6" />}
-                title="Add Notes"
-                description="Document your journey with rich markdown notes. Track interview feedback, key learnings, and important details for each application."
-                color="yellow"
-                align="right"
-              />
-
-              {/* Step 4 */}
-              <TimelineStep
-                number={4}
-                icon={<Archive className="w-6 h-6" />}
-                title="Archive"
-                description="At the end of application season, select all applications to archive to prepare for next season."
-                color="green"
-                align="left"
-              />
-            </div>
-          </div>
-
-          {/* Footer Note */}
-          <div className="mt-16 text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-800/50 border border-gray-700 rounded-full">
-              <span className="text-gray-400">💻 Best experienced on</span>
-              <span className="px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-md text-blue-300 font-medium">
-                Desktop
-              </span>
-            </div>
+        <div className="mt-14 text-center">
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full border border-white/10 bg-white/5 text-gray-300">
+            <span>Best experienced on</span>
+            <span className="px-3 py-1 rounded-md border border-white/10 bg-white/5 text-gray-200 font-medium">
+              Desktop
+            </span>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 bg-gray-900 py-8">
+      <footer className="border-t border-white/10 py-8">
         <div className="max-w-7xl mx-auto px-6 text-center text-gray-400">
           <p>
-            Made by <span className="text-gray-200 font-medium">Samuel Tan</span>
+            Made by{" "}
+            <span className="text-gray-200 font-medium">Samuel Tan</span>
           </p>
         </div>
       </footer>
@@ -182,45 +212,210 @@ export default function LandingPage() {
   );
 }
 
-function TimelineStep({ number, icon, title, description, color, align }) {
-  const colorClasses = {
-    purple: "from-purple-500 to-purple-600 shadow-purple-500/50",
-    blue: "from-blue-500 to-blue-600 shadow-blue-500/50",
-    yellow: "from-yellow-500 to-yellow-600 shadow-yellow-500/50",
-    green: "from-green-500 to-green-600 shadow-green-500/50",
-  };
+function Timeline({ steps }) {
+  return (
+    <div className="w-full">
+      {/* Desktop: horizontal stepper */}
+      <div className="hidden md:block">
+        <HorizontalStepper steps={steps} />
+      </div>
 
-  const iconColors = {
-    purple: "text-purple-400",
-    blue: "text-blue-400",
-    yellow: "text-yellow-400",
-    green: "text-green-400",
-  };
+      {/* Mobile: vertical timeline (compact, no overflow) */}
+      <div className="md:hidden">
+        <VerticalTimeline steps={steps} />
+      </div>
+    </div>
+  );
+}
+
+const stepTheme = {
+  1: {
+    accent: "text-teal-300",
+    chipBg: "bg-teal-600/12",
+    chipBorder: "border-teal-400/25",
+    nodeBg: "bg-teal-500/12",
+    nodeBorder: "border-teal-400/30",
+  },
+  2: {
+    accent: "text-purple-300",
+    chipBg: "bg-purple-600/12",
+    chipBorder: "border-purple-400/25",
+    nodeBg: "bg-purple-500/12",
+    nodeBorder: "border-purple-400/30",
+  },
+  3: {
+    accent: "text-amber-300",
+    chipBg: "bg-amber-500/12",
+    chipBorder: "border-amber-400/25",
+    nodeBg: "bg-amber-400/10",
+    nodeBorder: "border-amber-400/25",
+  },
+  4: {
+    accent: "text-emerald-300",
+    chipBg: "bg-emerald-600/12",
+    chipBorder: "border-emerald-400/25",
+    nodeBg: "bg-emerald-500/10",
+    nodeBorder: "border-emerald-400/25",
+  },
+};
+
+function HorizontalStepper({ steps }) {
+  return (
+    <div className="relative mx-auto max-w-6xl">
+      {/* track line (neutral, not teal-only) */}
+      <div className="absolute left-0 right-0 top-8.5 h-0.5 bg-white/10" />
+
+      <div className="grid grid-cols-4 gap-6 lg:gap-8">
+        {steps.map((step, idx) => (
+          <HorizontalStepCard key={step.number} step={step} index={idx} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HorizontalStepCard({ step, index }) {
+  const Icon = step.icon;
 
   return (
-    <div className={`relative flex items-center ${align === "left" ? "md:flex-row-reverse" : ""}`}>
-      {/* Number Badge */}
-      <div className="absolute left-8 md:left-1/2 -translate-x-1/2 z-10">
+    <div className="relative">
+      {/* Step node */}
+      <div className="flex flex-col items-center">
         <div
-          className={`w-16 h-16 rounded-full bg-linear-to-br ${colorClasses[color]} flex items-center justify-center text-white font-bold text-xl shadow-lg`}
+          className="
+            relative z-10
+            h-16 w-16 rounded-full
+            bg-[#0B1224] border border-white/10
+            shadow-xl shadow-black/35
+            flex items-center justify-center
+          "
         >
-          {number}
+          <div
+            className="
+              h-12 w-12 rounded-full
+              bg-teal-600/15 border border-teal-400/30
+              flex items-center justify-center
+            "
+          >
+            <span className="text-base font-extrabold text-teal-200">
+              {step.number}
+            </span>
+          </div>
+        </div>
+
+        {/* Card */}
+        <div
+          className="
+            mt-6 w-full
+            rounded-2xl border border-white/10
+            bg-white/5 backdrop-blur-md
+            p-6
+            shadow-xl shadow-black/25
+            hover:bg-white/7 transition
+            animate-fade-up
+          "
+          style={{ animationDelay: `${index * 110}ms` }}
+        >
+          <div className="flex items-center gap-3">
+            <span
+              className="
+                h-11 w-11 rounded-xl
+                bg-teal-600/10 border border-teal-400/20
+                flex items-center justify-center
+              "
+            >
+              <Icon className="w-5 h-5 text-teal-300" />
+            </span>
+
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-gray-100 leading-snug">
+                {step.title}
+              </h3>
+              <p className="mt-0.5 text-xs text-teal-200/80 tracking-wide">
+                Step {step.number}
+              </p>
+            </div>
+          </div>
+
+          <p className="mt-4 text-sm text-gray-400 leading-relaxed">
+            {step.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================
+   MOBILE: VERTICAL TIMELINE
+   ========================= */
+function VerticalTimeline({ steps }) {
+  return (
+    <div className="relative">
+      {/* Line */}
+      <div className="absolute left-6 top-2 bottom-2 w-px bg-white/10" />
+      <div className="absolute left-6 top-2 bottom-2 w-px bg-teal-500/25" />
+
+      <div className="space-y-6">
+        {steps.map((step, idx) => (
+          <VerticalTimelineItem key={step.number} step={step} index={idx} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VerticalTimelineItem({ step, index }) {
+  const Icon = step.icon;
+
+  return (
+    <div className="relative pl-16">
+      {/* Node */}
+      <div className="absolute left-6 top-2 -translate-x-1/2 z-10">
+        <div
+          className="
+            h-12 w-12 rounded-full
+            bg-[#0B1224] border border-white/10
+            shadow-lg shadow-black/35
+            flex items-center justify-center
+          "
+        >
+          <div className="h-9 w-9 rounded-full bg-teal-600/15 border border-teal-400/30 flex items-center justify-center">
+            <span className="text-sm font-extrabold text-teal-200">
+              {step.number}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Content Card */}
+      {/* Card */}
       <div
-        className={`ml-24 md:ml-0 md:w-5/12 ${
-          align === "left" ? "md:mr-auto md:pr-16" : "md:ml-auto md:pl-16"
-        }`}
+        className="
+          rounded-2xl border border-white/10
+          bg-white/5 backdrop-blur-md
+          p-6
+          shadow-xl shadow-black/20
+          animate-fade-up
+        "
+        style={{ animationDelay: `${index * 90}ms` }}
       >
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 hover:bg-gray-800/70 transition-all hover:scale-105 hover:shadow-xl">
-          <div className={`flex items-center gap-3 mb-3 ${iconColors[color]}`}>
-            {icon}
-            <h3 className="text-xl font-bold text-gray-100">{title}</h3>
+        <div className="flex items-center gap-3">
+          <span className="h-10 w-10 rounded-xl bg-teal-600/10 border border-teal-400/20 flex items-center justify-center">
+            <Icon className="w-5 h-5 text-teal-300" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-gray-100">
+              {step.title}
+            </h3>
+            <p className="mt-0.5 text-xs text-teal-200/80 tracking-wide">
+              Step {step.number}
+            </p>
           </div>
-          <p className="text-gray-400">{description}</p>
         </div>
+
+        <p className="mt-3 text-sm text-gray-400 leading-relaxed">
+          {step.description}
+        </p>
       </div>
     </div>
   );
