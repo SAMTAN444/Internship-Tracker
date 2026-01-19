@@ -14,7 +14,7 @@ import ReminderModal from "../components/ReminderModal";
 import "../confirm-dark.css";
 import gogginsImage from "../assets/goggins.png";
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
   const [internships, setInternships] = useState([]);
   const [editing, setEditing] = useState(null);
   const [user, setUser] = useState(null);
@@ -46,6 +46,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    delete API.defaults.headers.common.Authorization;
     toast.success("Successfully Logged Out");
     onLogout?.();
     navigate("/", { replace: true });
