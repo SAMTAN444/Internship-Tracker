@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -14,22 +15,41 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+
+  // Keep App in sync when token changes (logout/login)
+  useEffect(() => {
+    const syncToken = () => setToken(localStorage.getItem("token"));
+
+    // Same-tab changes (we'll call syncToken manually from logout/login too)
+    // Cross-tab changes
+    window.addEventListener("storage", syncToken);
+
+    return () => window.removeEventListener("storage", syncToken);
+  }, []);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* If logged in, go dashboard. Else show landing */}
-        <Route path="/" element={token ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
+        <Route
+          path="/"
+          element={token ? <Navigate to="/dashboard" replace /> : <LandingPage />}
+        />
 
-        <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
-        <Route path="/register" element={token ? <Navigate to="/dashboard" replace /> : <Register />} />
+        <Route
+          path="/login"
+          element={token ? <Navigate to="/dashboard" replace /> : <Login onAuth={() => setToken(localStorage.getItem("token"))} />}
+        />
+        <Route
+          path="/register"
+          element={token ? <Navigate to="/dashboard" replace /> : <Register onAuth={() => setToken(localStorage.getItem("token"))} />}
+        />
 
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Dashboard onLogout={() => setToken(null)} />
             </ProtectedRoute>
           }
         />

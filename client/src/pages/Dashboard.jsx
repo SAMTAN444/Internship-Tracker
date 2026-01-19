@@ -47,7 +47,8 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     toast.success("Successfully Logged Out");
-    navigate("/");
+    onLogout?.();
+    navigate("/", { replace: true });
   };
 
   const addInternship = async (formData) => {

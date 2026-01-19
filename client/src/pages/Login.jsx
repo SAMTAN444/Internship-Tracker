@@ -22,6 +22,7 @@ export default function Login() {
         password,
       });
       localStorage.setItem("token", data.token);
+      onAuth?.();
       navigate("/dashboard", { replace: true });
       toast.success("Successfully Logged In");
     } catch (error) {
