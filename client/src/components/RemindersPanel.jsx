@@ -74,11 +74,15 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                   {locationText}
                 </p>
 
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-300 whitespace-nowrap">
-                    <CalendarClock className="w-4 h-4 text-blue-400" />
-                    <span>{formattedDate}</span>
-                    <span className="text-teal-500">{timeRemaining}</span>
+                <div className="mt-4 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2 text-sm text-gray-300">
+                    <CalendarClock className="w-4 h-4 text-blue-400 shrink-0" />
+
+                    <span className="truncate">{formattedDate}</span>
+
+                    <span className="shrink-0 text-teal-500">
+                      {timeRemaining}
+                    </span>
                   </div>
 
                   <button
@@ -86,7 +90,7 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                       e.stopPropagation();
                       onDelete(intern._id);
                     }}
-                    className="text-gray-400 hover:text-red-400 text-sm font-semibold"
+                    className="shrink-0 text-gray-400 hover:text-red-400 text-sm font-semibold"
                     title="Remove reminder"
                   >
                     Delete

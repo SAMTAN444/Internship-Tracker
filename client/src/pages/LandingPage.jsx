@@ -89,7 +89,7 @@ export default function LandingPage() {
       </header>
 
       {/* HERO (full screen) */}
-      <section className="relative min-h-screen px-6 pt-24 md:pt-28 flex items-center">
+      <section className="relative min-h-screen px-6 pt-24 md:pt-28 pb-24 sm:pb-28 flex items-center">
         <div className="w-full max-w-5xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-100 animate-fade-up">
             <span className="text-gray-100">STAY</span>
@@ -160,12 +160,13 @@ export default function LandingPage() {
           type="button"
           onClick={scrollToHowItWorks}
           className="
-            absolute bottom-8 left-1/2 -translate-x-1/2
-            flex flex-col items-center gap-2
-            text-gray-300/80 hover:text-gray-100
-            transition
-            animate-fade-up-delay-3
-          "
+                absolute bottom-6 left-1/2 -translate-x-1/2 flex-col items-center gap-2
+                text-gray-300/80 hover:text-gray-100
+                transition
+                animate-fade-up-delay-3
+                hidden sm:flex
+                max-[420px]:hidden
+            "
           aria-label="Scroll to How it works"
         >
           <span className="text-sm tracking-wide">Scroll</span>
