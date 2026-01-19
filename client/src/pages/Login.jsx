@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { HiExclamationCircle } from "react-icons/hi";
 import { toast } from "react-toastify";
 
-export default function Login() {
+export default function Login({ onAuth }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -25,8 +25,13 @@ export default function Login() {
       onAuth?.();
       navigate("/dashboard", { replace: true });
       toast.success("Successfully Logged In");
-    } catch (error) {
-      toast.error("Invalid username or password");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Login failed. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
