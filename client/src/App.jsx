@@ -10,7 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token) return <Navigate to="/" replace />;
   return children;
 }
 
