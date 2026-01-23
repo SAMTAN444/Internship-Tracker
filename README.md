@@ -93,18 +93,18 @@ MongoDB Database
 
 ## Project Structure
 client/
-├── src/
-│ ├── components/
-│ ├── pages/
-│ ├── services/
-│ └── routes/
+- src/
+  - components/
+  - pages/
+  - services/
+  - routes/
 
 server/
-├── controllers/
-├── routes/
-├── models/
-├── middleware/
-└── config/
+- controllers/
+- routes/
+- models/
+- middleware/
+- config/
 
 ---
 
@@ -149,6 +149,6 @@ Computer Science Undergraduate
 
 ---
 
-### ⭐ Why Trackly
+### Why Trackly
 
 Trackly reflects real-world engineering trade-offs: building software that is **useful, maintainable, and production-ready**, while remaining clean, readable, and scalable.
