@@ -14,7 +14,7 @@ function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
           time-select
           flex items-center justify-center
           font-semibold
-          hover:bg-gray-700
+          hover:bg-gray-100
           transition
         "
       >
@@ -27,8 +27,8 @@ function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
             absolute top-full mt-2
             w-full
             max-h-48 overflow-y-auto
-            bg-gray-800
-            border border-gray-700
+            bg-gray-50
+            border border-gray-200
             rounded-xl
             shadow-xl
             z-50
@@ -41,7 +41,7 @@ function TimeDropdown({ value, options, isOpen, onOpen, onSelect }) {
               className="
                 w-full px-4 py-2
                 text-center text-sm
-                hover:bg-gray-700
+                hover:bg-gray-100
                 transition
               "
             >
@@ -128,32 +128,32 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800/70 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 backdrop-blur-xs">
       <div
         ref={modalRef}
-        className="w-full max-w-md mx-4 md:mx=0 rounded-2xl bg-gray-900 border border-gray-700 shadow-2xl p-6"
+        className="w-full max-w-md mx-4 md:mx=0 rounded-2xl bg-white border border-gray-200 shadow-2xl p-6"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-yellow-400" />
+            <Bell className="w-5 h-5 text-amber-600" />
             <h2 className="text-lg font-semibold">
               {intern.reminder ? "Edit Reminder" : "Add Reminder"}
             </h2>
           </div>
           <button onClick={onClose}>
-            <X className="w-5 h-5 text-gray-400 hover:text-gray-200" />
+            <X className="w-5 h-5 text-gray-600 hover:text-gray-800" />
           </button>
         </div>
 
         {/* Subtitle */}
-        <p className="text-sm text-gray-400 mb-6">
+        <p className="text-sm text-gray-600 mb-6">
           {intern.status} reminder for{" "}
-          <span className="text-gray-200 font-medium">{intern.company}</span>
+          <span className="text-gray-800 font-medium">{intern.company}</span>
         </p>
 
         {/* Date picker */}
-        <label className="block text-sm text-gray-300 mb-2">
+        <label className="block text-sm text-gray-700 mb-2">
           Reminder date
         </label>
         <div className="relative mb-4">
@@ -162,7 +162,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
             onClick={() => setDateOpen(!dateOpen)}
             className="input-dark flex items-center gap-3 w-full"
           >
-            <CalendarClock className="w-5 h-5 text-blue-400" />
+            <CalendarClock className="w-5 h-5 text-blue-600" />
             {date
               ? date.toLocaleDateString("en-GB", {
                   day: "numeric",
@@ -174,7 +174,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
 
           {dateOpen && (
             <div
-              className="absolute top-full mt-2 bg-gray-800 border border-gray-700 rounded-xl p-4 z-50"
+              className="absolute top-full mt-2 bg-gray-50 border border-gray-200 rounded-xl p-4 z-50"
               onClick={(e) => e.stopPropagation()}
             >
               <DayPicker
@@ -190,7 +190,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
         </div>
 
         {/* Time picker */}
-        <label className="block text-sm text-gray-300 mb-2">
+        <label className="block text-sm text-gray-700 mb-2">
           Reminder time
         </label>
 
@@ -209,7 +209,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
             }}
           />
 
-          <span className="text-gray-400 font-semibold">:</span>
+          <span className="text-gray-600 font-semibold">:</span>
 
           {/* Minute */}
           <TimeDropdown
@@ -242,7 +242,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
 
         {intern.status === "Interview" && (
           <>
-            <label className="block text-sm text-gray-300 mb-2">
+            <label className="block text-sm text-gray-700 mb-2">
               Interview location
             </label>
             <input
@@ -270,7 +270,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
           <div className="flex gap-3 ml-auto">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm"
+              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
             >
               Cancel
             </button>
@@ -278,7 +278,7 @@ export default function ReminderModal({ intern, onClose, onSave, onRemove }) {
             <button
               onClick={handleSave}
               disabled={!date}
-              className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-sm font-semibold disabled:opacity-40"
+              className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 text-sm font-semibold disabled:opacity-40"
             >
               Save reminder
             </button>

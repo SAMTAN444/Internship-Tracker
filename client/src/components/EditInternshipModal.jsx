@@ -40,19 +40,19 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
   ];
 
   const cycleIconStyles = {
-    Spring: "text-green-400",
-    Summer: "text-yellow-400",
-    Fall: "text-orange-400",
-    Winter: "text-blue-400",
+    Spring: "text-green-700",
+    Summer: "text-amber-700",
+    Fall: "text-orange-700",
+    Winter: "text-blue-700",
     "6-Month": "text-purple-300",
   };
 
   const cycleStyles = {
-    Spring: "bg-green-500/15 text-green-300",
-    Summer: "bg-yellow-500/15 text-yellow-300",
-    Fall: "bg-orange-500/15 text-orange-300",
-    Winter: "bg-blue-500/15 text-blue-300",
-    "6-Month": "text-purple-400",
+    Spring: "bg-green-100 text-green-800",
+    Summer: "bg-amber-100 text-amber-800",
+    Fall: "bg-orange-100 text-orange-800",
+    Winter: "bg-blue-100 text-blue-800",
+    "6-Month": "text-purple-700",
   };
 
   useEffect(() => {
@@ -97,22 +97,22 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black-60 backdrop-blur-sm">
       <div
         ref={modalRef}
-        className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-8 relative"
+        className="w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-2xl p-8 relative"
       >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
+          className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
         >
           <X />
         </button>
 
         {/* Header */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-100">
+          <h2 className="text-2xl font-semibold text-gray-900">
             Edit Application
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-600 text-sm">
             Update your application details below
           </p>
         </div>
@@ -176,16 +176,16 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
                     );
                   })()
                 ) : (
-                  <span className="text-gray-500">
+                  <span className="text-gray-600">
                     Choose internship period
                   </span>
                 )}
 
-                <span className="text-gray-400 text-xl">▾</span>
+                <span className="text-gray-600 text-xl">▾</span>
               </button>
 
               {cycleOpen && (
-                <div className="absolute mt-2 w-full bg-gray-800 border border-gray-700 rounded-xl z-50">
+                <div className="absolute mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl z-50">
                   {CYCLES.map((c) => (
                     <button
                       key={c.value}
@@ -194,16 +194,16 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
                         setForm({ ...form, cycle: c.value });
                         setCycleOpen(false);
                       }}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-700 flex items-center gap-3"
+                      className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3"
                     >
                       <c.icon
                         className={`w-5 h-5 ${cycleIconStyles[c.value]}`}
                       />
                       <div>
-                        <div className="text-gray-100 font-medium">
+                        <div className="text-gray-900 font-medium">
                           {c.label}
                         </div>
-                        <div className="text-xs text-gray-400">{c.desc}</div>
+                        <div className="text-xs text-gray-600">{c.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -225,7 +225,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
               </button>
 
               {dateOpen && (
-                <div className="absolute bottom-full mb-2 bg-gray-900 border border-gray-700 rounded-xl p-4 z-50">
+                <div className="absolute bottom-full mb-2 bg-white border border-gray-200 rounded-xl p-4 z-50">
                   <DayPicker
                     mode="single"
                     selected={new Date(form.appliedAt)}
@@ -245,14 +245,14 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
         <div className="mt-10 flex justify-end gap-4">
           <button 
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition font-medium"
+            className="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
           >
             Cancel
           </button>
 
           <button 
           onClick={handleSubmit}
-          className="px-5 py-2 rounded-lg  font-medium bg-teal-700 hover:bg-teal-600 text-white "
+          className="px-5 py-2 rounded-lg  font-medium bg-gray-900 hover:bg-gray-800 text-white "
           >Save Changes</button>
         </div>
       </div>
@@ -263,7 +263,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
 function Field({ label, children }) {
   return (
     <div>
-      <label className="block text-sm text-gray-400 mb-2">{label}</label>
+      <label className="block text-sm text-gray-600 mb-2">{label}</label>
       {children}
     </div>
   );

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { toast } from "react-toastify";
 import ReactMarkdown from "react-markdown";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.svg";
 import { useCallback } from "react";
 
 export default function NotesPage() {
@@ -60,26 +60,28 @@ export default function NotesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800">
-        <div className="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-400">Loading dashboard…</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-gray-600">Loading dashboard…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
+    <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
       {/* Top Bar */}
-      <header className="border-gray-700 border-b bg-gray-700">
+      <header className="border-gray-200 border-b bg-gray-100">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-3">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Logo" className="w-12 h-12 opacity-90" />
-            <span className="text-2xl font-semibold">Trackly</span>
+          <div className="flex items-center gap-2.5">
+            <img src={logo} alt="" className="h-9 md:h-10 w-auto" />
+            <span className="text-2xl font-bold tracking-tight text-gray-900">
+              Trackly
+            </span>
           </div>
 
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-200 group hover:text-white"
+            className="flex items-center gap-2 text-gray-800 group hover:text-gray-900"
           >
             <span className="transform transition-transform duration-200 group-hover:-translate-x-1">
               ←
@@ -91,7 +93,7 @@ export default function NotesPage() {
 
       <div className="flex-1 w-full max-w-6xl mx-auto p-10">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">{internship.company}</h1>
-        <p className="text-lg text-gray-300 mb-6">{internship.role}</p>
+        <p className="text-lg text-gray-700 mb-6">{internship.role}</p>
 
         {/* Edit / Preview Toggle */}
         <div className="flex gap-4 mb-6">
@@ -100,8 +102,8 @@ export default function NotesPage() {
               onClick={() => setIsPreview(false)}
               className={`px-5 py-2 rounded-md font-semibold transition-all duration-200 ${
                 !isPreview
-                  ? "bg-teal-700 text-white"
-                  : "bg-gray-700 text-gray-300"
+                  ? "bg-[#CBFF9E] text-gray-900"
+                  : "bg-gray-100 text-gray-700"
               }`}
             >
               Edit
@@ -110,8 +112,8 @@ export default function NotesPage() {
               onClick={() => setIsPreview(true)}
               className={`px-5 py-2 rounded-md font-semibold transition-all duration-200 ${
                 isPreview
-                  ? "bg-teal-700 text-white"
-                  : "bg-gray-700 text-gray-300"
+                  ? "bg-[#CBFF9E] text-gray-900"
+                  : "bg-gray-100 text-gray-700"
               }`}
             >
               Preview
@@ -125,14 +127,14 @@ export default function NotesPage() {
             ${
               isDirty
                 ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-gray-200 text-gray-600 cursor-not-allowed"
             }
         `}
           >
             <span>Save</span>
             <span
               className={`flex items-center gap-1 px-2 py-1 rounded-md ${
-                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-400"
+                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-600"
               }`}
             >
               {navigator.userAgentData?.platform === "macOS" ||
@@ -142,7 +144,7 @@ export default function NotesPage() {
             </span>
             <span
               className={`flex items-center gap-1 px-2 py-1 rounded-md ${
-                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-400"
+                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-600"
               }`}
             >
               S
@@ -154,14 +156,14 @@ export default function NotesPage() {
         {!isPreview ? (
           <div className="relative">
             <textarea
-              className="w-full h-[40vh] md:h-[65vh] bg-gray-900 text-gray-200 border border-gray-700 rounded-lg p-4 resize-none text-lg 
+              className="w-full h-[40vh] md:h-[65vh] bg-white text-gray-800 border border-gray-200 rounded-lg p-4 resize-none text-lg 
            focus:outline-none focus:ring-1 focus:ring-gray-600"
               placeholder="Start writing your notes in Markdown..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-            <div className="hidden md:block absolute bottom-10 left-10 text-gray-400 text-lg font-semibold pointer-events-none select-none">
-              <h4 className="uppercase tracking-widest text-gray-500 mb-3">
+            <div className="hidden md:block absolute bottom-10 left-10 text-gray-600 text-lg font-semibold pointer-events-none select-none">
+              <h4 className="uppercase tracking-widest text-gray-600 mb-3">
                 MARKDOWN TIPS
               </h4>
 
@@ -185,7 +187,7 @@ export default function NotesPage() {
             </div>
           </div>
         ) : (
-          <div className="w-full h-[65vh] bg-gray-900 text-lg font-semibold text-gray-200 border border-gray-700 rounded-lg p-6 overflow-auto prose prose-invert">
+          <div className="w-full h-[65vh] bg-white text-lg font-semibold text-gray-800 border border-gray-200 rounded-lg p-6 overflow-auto prose prose-invert">
             <ReactMarkdown>{notes}</ReactMarkdown>
           </div>
         )}

@@ -12,5 +12,9 @@ yarn-debug.log*
 .DS_Store
 
 # Build output
-dist/ 
+dist/
 build/
+
+# Claude Code / Impeccable tooling (local)
+.claude/
+.impeccable/

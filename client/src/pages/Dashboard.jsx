@@ -5,7 +5,7 @@ import InternTable from "../components/InternTable";
 import Form from "../components/Form";
 import EditInternshipModal from "../components/EditInternshipModal";
 import Footer from "../components/Footer";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.svg";
 import { toast } from "react-toastify";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -264,45 +264,45 @@ export default function Dashboard({ onLogout }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800">
-        <div className="w-10 h-10 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-400">Loading dashboard…</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-gray-600">Loading dashboard…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-800 text-gray-200 flex flex-col">
+    <div className="min-h-screen bg-white text-gray-800 flex flex-col">
       {actionLoading && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-gray-900 px-6 py-4 rounded-xl border border-gray-700 flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-gray-500 border-t-teal-400 rounded-full animate-spin" />
-            <span className="text-sm text-gray-200 font-medium">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center"
+        >
+          <div className="bg-white px-6 py-4 rounded-xl border border-gray-200 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+            <span className="text-sm text-gray-800 font-medium">
               Processing…
             </span>
           </div>
         </div>
       )}
       {/* Top Bar */}
-      <header className="w-full border-b border-gray-800 bg-gray-700">
+      <header className="w-full border-b border-gray-200 bg-white">
         <div className="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between px-4 py-3 md:px-6 md:py-4 gap-2 overflow-x-auto">
           {/* LEFT — Greeting */}
-          <span className="text-lg md:text-2xl">
+          <h1 className="text-lg md:text-2xl font-normal">
             Hello,{" "}
-            <span className="font-medium text-gray-100">
-              {user?.name || "User"}
+            <span className="font-medium text-gray-900">
+              {user?.username || "User"}
             </span>
-          </span>
+          </h1>
 
           {/* RIGHT — Logo + Text + Logout */}
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 md:gap-6">
-            <div className="flex items-center gap-3">
-              <img
-                src={logo}
-                alt="Trackly Logo"
-                className="w-15 h-15 md:w-10 md:h-10 opacity-90"
-              />
-              <span className="text-2xl font-semibold tracking-wide">
+            <div className="flex items-center gap-2.5">
+              <img src={logo} alt="" className="h-9 md:h-10 w-auto" />
+              <span className="text-2xl font-bold tracking-tight text-gray-900">
                 Trackly
               </span>
             </div>
@@ -349,7 +349,7 @@ export default function Dashboard({ onLogout }) {
               <div
                 className="
                   w-full
-                  bg-gray-900/40 border border-gray-700/50 rounded-2xl
+                  bg-white border border-gray-200 rounded-2xl
                   p-6
                   md:flex-1
                   min-h-0
@@ -359,7 +359,10 @@ export default function Dashboard({ onLogout }) {
                 <div className="flex-1 min-h-0 flex items-center justify-center">
                   <img
                     src={gogginsImage}
-                    alt="David Goggins"
+                    alt=""
+                    loading="lazy"
+                    width={240}
+                    height={220}
                     className="
                       w-auto
                       max-w-55 md:max-w-60
@@ -373,7 +376,7 @@ export default function Dashboard({ onLogout }) {
                   />
                 </div>
 
-                <p className="mt-3 text-center text-xs text-gray-400">
+                <p className="mt-3 text-center text-xs text-gray-600">
                   Stay hard. Keep applying.
                 </p>
               </div>

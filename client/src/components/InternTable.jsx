@@ -38,11 +38,11 @@ export default function InternTable({
   setScope,
 }) {
   const cycleStyles = {
-    Spring: "bg-green-500/15 text-green-300",
-    Summer: "bg-yellow-500/15 text-yellow-300",
-    Fall: "bg-orange-500/15 text-orange-300",
-    Winter: "bg-blue-500/15 text-blue-300",
-    "6-Month": "bg-purple-500/15 text-purple-300",
+    Spring: "bg-green-100 text-green-800",
+    Summer: "bg-amber-100 text-amber-800",
+    Fall: "bg-orange-100 text-orange-800",
+    Winter: "bg-blue-100 text-blue-800",
+    "6-Month": "bg-purple-100 text-purple-800",
   };
 
   const CYCLE_META = {
@@ -54,15 +54,31 @@ export default function InternTable({
   };
 
   const statusStyles = {
-    Applied: "bg-gray-600 text-white",
-    OA: "bg-purple-600 text-white",
-    Interview: "bg-yellow-600 text-white",
-    Offer: "bg-green-600 text-white",
-    Rejected: "bg-red-500 text-white",
-    Archived: "bg-gray-700 text-gray-300 border border-gray-600",
+    Applied: "bg-gray-100 text-gray-800 border border-gray-300",
+    OA: "bg-purple-100 text-purple-900 border border-purple-300",
+    Interview: "bg-amber-100 text-amber-900 border border-amber-300",
+    Offer: "bg-[#CBFF9E] text-gray-900 border border-green-600",
+    Rejected: "bg-red-100 text-red-900 border border-red-300",
+    Archived: "bg-gray-100 text-gray-700 border border-gray-300",
   };
 
   const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Debounced search: type into local state, propagate after a pause so we
+  // don't fire a request on every keystroke.
+  const [localSearch, setLocalSearch] = useState(searchquery);
+  useEffect(() => {
+    setLocalSearch(searchquery); // keep in sync when cleared via Reset
+  }, [searchquery]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (localSearch !== searchquery) {
+        setSearchQuery(localSearch);
+        setPage(1);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [localSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -89,21 +105,45 @@ export default function InternTable({
         setOpenMenuId(null);
       }
     }
+    function handleEscape(e) {
+      if (e.key === "Escape") setOpenMenuId(null);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [searchquery, sortField, sortOrder]);
 
+  // Shared sort handler: toggles order on the active field, else selects it.
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    setPage(1);
+  };
+  const ariaSortFor = (field) =>
+    sortField === field
+      ? sortOrder === "asc"
+        ? "ascending"
+        : "descending"
+      : "none";
+
   return (
-    <div className="bg-gray-900/60 backdrop-blur border border-gray-700/60 rounded-xl shadow-lg">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-lg">
       {/* Table Header */}
 
-      <div className="px-6 py-6 border-b border-gray-700/60 bg-gray-800/60">
+      <div className="px-6 py-6 border-b border-gray-200 bg-gray-50">
         {/* Row 1 - Title */}
         <div>
           <h2 className="text-2xl md:text-3xl font-semibold tracking-wide">
             Internships
           </h2>
-          <p className="text-sm md:text-base text-gray-400">
+          <p className="text-sm md:text-base text-gray-600">
             Track and manage your applications
           </p>
         </div>
@@ -113,15 +153,15 @@ export default function InternTable({
             type="button"
             onClick={() => {
               setScope("active");
-              console.log("tab -> archived click");
               setPage(1);
               setSelectedIds([]);
               setStatusToUpdate("Applied");
             }}
+            aria-pressed={scope === "active"}
             className={`
       flex-1 h-10 rounded-lg text-sm font-semibold
-      border border-gray-700/60
-      ${scope === "active" ? "bg-teal-700 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
+      border border-gray-200
+      ${scope === "active" ? "bg-[#CBFF9E] text-gray-900" : "bg-gray-50 text-gray-700 hover:bg-gray-100"}
     `}
           >
             Active Apps
@@ -135,10 +175,11 @@ export default function InternTable({
               setSelectedIds([]);
               setStatusToUpdate("Applied");
             }}
+            aria-pressed={scope === "archived"}
             className={`
       flex-1 h-10 rounded-lg text-sm font-semibold
-      border border-gray-700/60
-      ${scope === "archived" ? "bg-teal-700 text-gray-100" : "bg-gray-800/30 text-gray-400 hover:bg-gray-800/50"}
+      border border-gray-200
+      ${scope === "archived" ? "bg-[#CBFF9E] text-gray-900" : "bg-gray-50 text-gray-700 hover:bg-gray-100"}
     `}
           >
             Archived Apps
@@ -152,11 +193,9 @@ export default function InternTable({
           <input
             type="text"
             placeholder="Search applications"
-            value={searchquery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
+            aria-label="Search applications"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             className="input-dark w-full"
           />
 
@@ -186,8 +225,8 @@ export default function InternTable({
                 className="
           h-10 w-24
           rounded-lg text-sm font-semibold
-          bg-gray-700/60 text-gray-200
-          hover:bg-gray-600/70
+          bg-gray-100 text-gray-800
+          hover:bg-gray-200/70
           disabled:opacity-40 disabled:cursor-not-allowed
         "
               >
@@ -213,8 +252,8 @@ export default function InternTable({
           rounded-lg text-sm font-semibold transition
           ${
             selectedIds.length === 0
-              ? "bg-gray-700/60 text-gray-200 hover:bg-gray-600/70 disabled:opacity-40 disabled:cursor-not-allowed"
-              : "bg-teal-700 text-white hover:bg-teal-600"
+              ? "bg-gray-100 text-gray-800 hover:bg-gray-200/70 disabled:opacity-40 disabled:cursor-not-allowed"
+              : "bg-gray-900 text-white hover:bg-gray-800"
           }
         `}
               >
@@ -225,7 +264,7 @@ export default function InternTable({
             {/* Row 3: selected count on RIGHT (below Update row) */}
             <div className="grid grid-cols-[1fr_96px]">
               <div />
-              <span className="text-sm text-gray-300 text-right">
+              <span className="text-sm text-gray-700 text-right">
                 {selectedIds.length} selected
               </span>
             </div>
@@ -258,8 +297,8 @@ export default function InternTable({
                   }}
                   className="
           h-10 px-3 rounded-lg text-sm font-semibold
-          bg-gray-600 text-white
-          hover:bg-gray-600/70
+          bg-gray-200 text-gray-900
+          hover:bg-gray-200/70
           disabled:opacity-40 disabled:cursor-not-allowed
         "
                 >
@@ -287,8 +326,8 @@ export default function InternTable({
           h-10 px-3 rounded-lg text-sm font-semibold transition whitespace-nowrap
           ${
             selectedIds.length === 0
-              ? "bg-gray-700/60 text-gray-200 hover:bg-gray-600/70 disabled:opacity-40 disabled:cursor-not-allowed"
-              : "bg-teal-700 text-white hover:bg-teal-600"
+              ? "bg-gray-100 text-gray-800 hover:bg-gray-200/70 disabled:opacity-40 disabled:cursor-not-allowed"
+              : "bg-gray-900 text-white hover:bg-gray-800"
           }
         `}
                 >
@@ -299,7 +338,7 @@ export default function InternTable({
 
             {/* Row 2: selected BELOW the whole row, aligned right */}
             <div className="mt-2 flex justify-end">
-              <span className="text-sm text-gray-300">
+              <span className="text-sm text-gray-700">
                 {selectedIds.length} selected
               </span>
             </div>
@@ -325,12 +364,13 @@ export default function InternTable({
       {/* Table */}
       <div className="hidden md:block">
         <table className="min-w-full text-base">
-          <thead className="bg-gray-800/80 text-gray-300 uppercase tracking-wider text-sm">
-            <tr className="odd:bg-gray-800/40 even:bg-transparent hover:bg-gray-700/40 transition">
-              <th className="px-6 py-4 text-center w-12">
+          <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider text-sm">
+            <tr className="odd:bg-gray-50 even:bg-transparent hover:bg-gray-100 transition">
+              <th scope="col" className="px-6 py-4 text-center w-12">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
+                  aria-label="Select all applications"
+                  className="w-5 h-5 rounded accent-gray-900 bg-gray-50"
                   checked={
                     internships.length > 0 &&
                     selectedIds.length === internships.length
@@ -338,77 +378,54 @@ export default function InternTable({
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th className="px-6 py-4 text-left text-sm">Company</th>
-              <th className="px-6 py-4 text-left text-sm">Role</th>
-              <th
-                className="px-6 py-4 text-left text-sm cursor-pointer select-none"
-                onClick={() => {
-                  if (sortField === "cycle") {
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  } else {
-                    setSortField("cycle");
-                    setSortOrder("asc");
-                  }
-                  setPage(1);
-                }}
-              >
-                Cycle{" "}
-                {sortField === "cycle"
-                  ? sortOrder === "asc"
-                    ? "↑"
-                    : "↓"
-                  : "↕"}
+              <th scope="col" className="px-6 py-4 text-left text-sm">Company</th>
+              <th scope="col" className="px-6 py-4 text-left text-sm">Role</th>
+              <th scope="col" aria-sort={ariaSortFor("cycle")} className="px-6 py-4 text-left text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort("cycle")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-900"
+                >
+                  Cycle{" "}
+                  <span aria-hidden="true">
+                    {sortField === "cycle" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                  </span>
+                </button>
               </th>
-              <th
-                className="px-6 py-4 text-left text-sm cursor-pointer select-none"
-                onClick={() => {
-                  if (sortField === "appliedAt") {
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  } else {
-                    setSortField("appliedAt");
-                    setSortOrder("asc");
-                  }
-                  setPage(1);
-                }}
-              >
-                <span className="inline-flex items-center gap-1">
+              <th scope="col" aria-sort={ariaSortFor("appliedAt")} className="px-6 py-4 text-left text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort("appliedAt")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-900"
+                >
                   Date Applied{" "}
-                  {sortField === "appliedAt"
-                    ? sortOrder === "asc"
-                      ? "↑"
-                      : "↓"
-                    : "↕"}
-                </span>
+                  <span aria-hidden="true">
+                    {sortField === "appliedAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                  </span>
+                </button>
               </th>
 
-              <th
-                className="px-6 py-4 text-left text-sm cursor-pointer select-none"
-                onClick={() => {
-                  if (sortField === "status") {
-                    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                  } else {
-                    setSortField("status");
-                    setSortOrder("asc");
-                  }
-                  setPage(1);
-                }}
-              >
-                Status{" "}
-                {sortField === "status"
-                  ? sortOrder === "asc"
-                    ? "↑"
-                    : "↓"
-                  : "↕"}
+              <th scope="col" aria-sort={ariaSortFor("status")} className="px-6 py-4 text-left text-sm">
+                <button
+                  type="button"
+                  onClick={() => handleSort("status")}
+                  className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-900"
+                >
+                  Status{" "}
+                  <span aria-hidden="true">
+                    {sortField === "status" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                  </span>
+                </button>
               </th>
 
-              <th className="px-6 py-4 text-left text-sm">Actions</th>
+              <th scope="col" className="px-6 py-4 text-left text-sm">Actions</th>
             </tr>
           </thead>
 
           <tbody className="">
             {internships.length === 0 && searchquery === "" && (
               <tr>
-                <td colSpan="6" className="px-6 py-6 text-center text-gray-400">
+                <td colSpan="7" className="px-6 py-6 text-center text-gray-700">
                   No internships yet
                 </td>
               </tr>
@@ -416,7 +433,7 @@ export default function InternTable({
             {internships.length === 0 && searchquery !== "" && (
               <tr>
                 <td colSpan="7">
-                  <div className="flex justify-center items-center h-48 text-gray-400 text-lg">
+                  <div className="flex justify-center items-center h-48 text-gray-700 text-lg">
                     No internships match your search
                   </div>
                 </td>
@@ -424,19 +441,20 @@ export default function InternTable({
             )}
 
             {internships.map((intern) => (
-              <tr key={intern._id} className="hover:bg-gray-700/40 transition">
+              <tr key={intern._id} className="hover:bg-gray-100 transition">
                 <td className="px-6 py-5 text-center">
                   <input
                     type="checkbox"
-                    className="w-5 h-5 rounded-3xl bg-gray-800 text-blue-700"
+                    aria-label={`Select ${intern.company} application`}
+                    className="w-5 h-5 rounded accent-gray-900 bg-gray-50"
                     checked={selectedIds.includes(intern._id)}
                     onChange={() => toggleSelect(intern._id)}
                   />
                 </td>
-                <td className="px-6 py-5 text-gray-100 font-semibold text-lg">
+                <td className="px-6 py-5 text-gray-900 font-semibold text-lg">
                   {intern.company}
                 </td>
-                <td className="px-6 py-5 text-gray-300 text-base">
+                <td className="px-6 py-5 text-gray-700 text-base">
                   {intern.role}
                 </td>
                 <td className="px-6 py-5">
@@ -451,7 +469,7 @@ export default function InternTable({
                   </span>
                 </td>
 
-                <td className="px-6 py-4 text-gray-300">
+                <td className="px-6 py-4 text-gray-700">
                   {new Date(intern.appliedAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
@@ -464,13 +482,14 @@ export default function InternTable({
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right relative">
-                  <div className="flex items-center gap-3 justify-end">
+                  <div className="flex items-center gap-2 justify-end">
                     {/* Notes Button */}
                     <button
                       onClick={() => navigate(`/notes/${intern._id}`)}
-                      className="p-2 rounded-lg hover:bg-gray-700"
+                      aria-label={`Open notes for ${intern.company}`}
+                      className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-gray-100"
                     >
-                      <FileText className="w-4 h-4 text-gray-400" />
+                      <FileText className="w-4 h-4 text-gray-700" />
                     </button>
 
                     {/* Menu Toggle */}
@@ -480,26 +499,31 @@ export default function InternTable({
                           openMenuId === intern._id ? null : intern._id,
                         )
                       }
-                      className="p-2 rounded-lg hover:bg-gray-700"
+                      aria-label={`More actions for ${intern.company}`}
+                      aria-haspopup="menu"
+                      aria-expanded={openMenuId === intern._id}
+                      className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-gray-100"
                     >
-                      <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                      <MoreHorizontal className="w-5 h-5 text-gray-700" />
                     </button>
                   </div>
 
                   {openMenuId === intern._id && (
                     <div
                       ref={menuRef}
-                      className="fixed right-6 mt-2 w-44 rounded-xl bg-gray-800 border border-gray-700 shadow-lg z-50"
+                      role="menu"
+                      className="absolute right-6 top-full mt-2 w-44 rounded-xl bg-gray-50 border border-gray-200 shadow-lg z-50"
                     >
                       {/* Job link — conditional */}
                       {intern.applicationLink && (
                         <a
+                          role="menuitem"
                           href={intern.applicationLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
                         >
-                          <ExternalLink className="w-4 h-4 text-blue-400" />
+                          <ExternalLink className="w-4 h-4 text-blue-600" />
                           Job Link
                         </a>
                       )}
@@ -508,17 +532,18 @@ export default function InternTable({
                       {(intern.status === "OA" ||
                         intern.status === "Interview") && (
                         <button
+                          role="menuitem"
                           onClick={() => {
                             setReminderTarget(intern);
                             setOpenMenuId(null);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-800 font-semibold hover:bg-gray-100"
                         >
                           <Bell
                             className={`w-4 h-4 ${
                               intern.reminder
-                                ? "text-yellow-400"
-                                : "text-gray-400"
+                                ? "text-amber-600"
+                                : "text-gray-600"
                             }`}
                           />
                           {intern.reminder ? "Edit Reminder" : "Set Reminder"}
@@ -527,25 +552,27 @@ export default function InternTable({
 
                       {/* Edit */}
                       <button
+                        role="menuitem"
                         onClick={() => {
                           onEdit(intern);
                           setOpenMenuId(null);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-200 font-semibold hover:bg-gray-700"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-800 font-semibold hover:bg-gray-100"
                       >
-                        <Pencil className="w-4 h-4 text-teal-600" />
+                        <Pencil className="w-4 h-4 text-gray-700" />
                         Edit
                       </button>
 
                       {/* Delete */}
                       <button
+                        role="menuitem"
                         onClick={() => {
                           onDelete(intern._id);
                           setOpenMenuId(null);
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-700"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
                       >
-                        <Trash2 className="w-4 h-4 text-red-700" />
+                        <Trash2 className="w-4 h-4 text-red-600" />
                         Delete
                       </button>
                     </div>
@@ -558,7 +585,7 @@ export default function InternTable({
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-700 flex items-center justify-between text-sm text-gray-400">
+      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between text-sm text-gray-700">
         <span>
           Page {page} of {totalPages}
         </span>
@@ -566,7 +593,8 @@ export default function InternTable({
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-800 text-sm disabled:opacity-50"
+            aria-label="Previous page"
+            className="inline-flex items-center justify-center min-h-11 px-4 rounded-md bg-gray-100 hover:bg-gray-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Prev
           </button>
@@ -574,7 +602,8 @@ export default function InternTable({
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
-            className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-800 text-sm disabled:opacity-50"
+            aria-label="Next page"
+            className="inline-flex items-center justify-center min-h-11 px-4 rounded-md bg-gray-100 hover:bg-gray-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>

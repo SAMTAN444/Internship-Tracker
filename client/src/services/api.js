@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const API = axios.create({
-    baseURL: "https://internship-tracker-api.onrender.com",
+    baseURL: import.meta.env.VITE_API_URL || "https://internship-tracker-api.onrender.com",
 });
 
 // Attach token automatically if it exists

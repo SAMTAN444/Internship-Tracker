@@ -13,23 +13,23 @@ export default function FilterDropdown({ value, setValue }) {
     <Listbox value={value} onChange={setValue}>
       <div className="relative inline-block">
         <ListboxButton
-          className="bg-gray-900 border border-gray-700 
-            text-gray-200 text-sm md:text-base
-            px-4 py-2 
-            rounded-lg 
+          className="bg-white border border-gray-200
+            text-gray-800 text-sm md:text-base
+            px-4 py-2 min-h-11
+            rounded-lg
             w-40
             flex items-center justify-between
-            hover:border-gray-500
-            focus:outline-none"
+            hover:border-gray-400
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
         >
-          {value || <span className="text-gray-500 text-sm md:text-base">Filter by...</span>}
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          {value || <span className="text-gray-600 text-sm md:text-base">Filter by...</span>}
+          <ChevronDown className="w-4 h-4 text-gray-600" />
         </ListboxButton>
 
         <ListboxOptions
           className="
             absolute z-50 top-full w-full
-          bg-gray-900 border border-gray-700 rounded-lg shadow-xl
+          bg-white border border-gray-200 rounded-lg shadow-xl
             overflow-hidden focus:outline-none
           "
         >
@@ -40,8 +40,8 @@ export default function FilterDropdown({ value, setValue }) {
               className={({ active, selected }) =>
                 `
                 cursor-pointer select-none px-4 py-2 text-sm md:text-base
-                ${active ? "bg-gray-700 text-white" : ""}
-                ${selected ? "bg-gray-800 font-semibold" : ""}
+                ${active ? "bg-gray-100 text-gray-900" : ""}
+                ${selected ? "bg-gray-50 font-semibold" : ""}
                 `
               }
             >

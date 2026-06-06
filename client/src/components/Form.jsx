@@ -4,11 +4,16 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { toast } from "react-toastify";
 
-function Field({ label, children }) {
+function Field({ id, label, required, children }) {
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
           {label}
+          {required && (
+            <span className="text-red-600" aria-hidden="true">
+              {" *"}
+            </span>
+          )}
         </label>
         {children}
       </div>
@@ -39,19 +44,19 @@ export default function Form({ onSubmit }) {
   ];
 
   const cycleStyles = {
-    Spring: "bg-green-500/15 text-green-300",
-    Summer: "bg-yellow-500/15 text-yellow-300",
-    Fall: "bg-orange-500/15 text-orange-300",
-    Winter: "bg-blue-500/15 text-blue-300",
-    "6-Month": "bg-purple-500/15 text-purple-300",
+    Spring: "bg-green-100 text-green-800",
+    Summer: "bg-amber-100 text-amber-800",
+    Fall: "bg-orange-100 text-orange-800",
+    Winter: "bg-blue-100 text-blue-800",
+    "6-Month": "bg-purple-100 text-purple-800",
   };
 
   const cycleIconStyles = {
-    Spring: "text-green-400",
-    Summer: "text-yellow-400",
-    Fall: "text-orange-400",
-    Winter: "text-blue-400",
-    "6-Month": "text-purple-400",
+    Spring: "text-green-700",
+    Summer: "text-amber-700",
+    Fall: "text-orange-700",
+    Winter: "text-blue-700",
+    "6-Month": "text-purple-700",
   };
 
   const cycleRef = useRef(null);
@@ -76,7 +81,7 @@ export default function Form({ onSubmit }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleReset(e) {
+  function handleReset() {
     setForm({
       company: "",
       role: "",
@@ -105,20 +110,23 @@ export default function Form({ onSubmit }) {
 
   return (
     <div className="w-full">
-      <div className="w-full bg-gray-900/70 backdrop-blur border border-gray-700/60 rounded-2xl shadow-2xl p-8">
+      <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-2xl p-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center text-white text-4xl font-semibold">
+          <div className="w-12 h-12 rounded-xl bg-[#CBFF9E] flex items-center justify-center text-gray-900 text-4xl font-semibold">
             +
           </div>
-          <h2 className="text-2xl font-semibold text-gray-100">
+          <h2 className="text-2xl font-semibold text-gray-900">
             Add New Application
           </h2>
         </div>
         <form className="space-y-6" onSubmit={handleSubmit}>
-          <Field label="Company Name">
+          <Field id="company" label="Company Name" required>
             <input
+              id="company"
               name="company"
+              required
+              aria-required="true"
               value={form.company}
               onChange={handleChange}
               placeholder="e.g. Google, Bloomberg, Apple"
@@ -126,9 +134,12 @@ export default function Form({ onSubmit }) {
             />
           </Field>
 
-          <Field label="Position">
+          <Field id="role" label="Position" required>
             <input
+              id="role"
               name="role"
+              required
+              aria-required="true"
               value={form.role}
               onChange={handleChange}
               placeholder="e.g. Software Engineer Intern"
@@ -136,8 +147,9 @@ export default function Form({ onSubmit }) {
             />
           </Field>
 
-          <Field label="Job Link (optional)">
+          <Field id="link" label="Job Link (optional)">
             <input
+              id="link"
               name="link"
               value={form.link}
               onChange={handleChange}
@@ -146,10 +158,13 @@ export default function Form({ onSubmit }) {
             />
           </Field>
 
-          <Field label="Time Period">
+          <Field id="cycle" label="Time Period" required>
             <div ref={cycleRef} className="relative">
               <button
+                id="cycle"
                 type="button"
+                aria-haspopup="listbox"
+                aria-expanded={cycleOpen}
                 onClick={(e) => {
                   e.stopPropagation();
                   setCycleOpen(!cycleOpen);
@@ -174,17 +189,17 @@ export default function Form({ onSubmit }) {
                     );
                   })()
                 ) : (
-                  <span className="text-gray-500">
+                  <span className="text-gray-600">
                     Choose internship period
                   </span>
                 )}
 
-                <span className="text-gray-400 text-xl">▾</span>
+                <span className="text-gray-600 text-xl">▾</span>
               </button>
 
               {cycleOpen && (
                 <div
-                  className="absolute z-20 mt-2 w-full rounded-xl bg-gray-800 border border-gray-700 shadow-lg overflow-hidden"
+                  className="absolute z-20 mt-2 w-full rounded-xl bg-gray-50 border border-gray-200 shadow-lg overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {CYCLES.map((c) => (
@@ -195,16 +210,16 @@ export default function Form({ onSubmit }) {
                         setForm({ ...form, cycle: c.value });
                         setCycleOpen(false);
                       }}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-700 flex items-center gap-3"
+                      className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3"
                     >
                       <c.icon
                         className={`w-5 h-5 ${cycleIconStyles[c.value]}`}
                       />
                       <div>
-                        <div className="text-gray-100 font-medium">
+                        <div className="text-gray-900 font-medium">
                           {c.label}
                         </div>
-                        <div className="text-xs text-gray-400">{c.desc}</div>
+                        <div className="text-xs text-gray-600">{c.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -213,18 +228,21 @@ export default function Form({ onSubmit }) {
             </div>
           </Field>
 
-          <Field label="Date Applied">
+          <Field id="appliedAt" label="Date Applied" required>
             <div ref={dateRef} className="relative">
               <button
+                id="appliedAt"
                 type="button"
+                aria-haspopup="dialog"
+                aria-expanded={dateOpen}
                 onClick={(e) => {
                   e.stopPropagation();
                   setDateOpen(!dateOpen);
                   setCycleOpen(false);
                 }}
-                className="input-dark flex items-center gap-3 text-gray-300"
+                className="input-dark flex items-center gap-3 text-gray-700"
               >
-                <CalendarClock className="w-5 h-5 text-blue-400" />
+                <CalendarClock className="w-5 h-5 text-blue-600" />
                 {form.appliedAt
                   ? new Date(form.appliedAt).toLocaleDateString("en-GB", {
                       day: "numeric",
@@ -235,7 +253,7 @@ export default function Form({ onSubmit }) {
               </button>
               {dateOpen && (
                 <div
-                  className="absolute bottom-full mb-2 bg-gray-900 border border-gray-700 rounded-xl p-4 z-50"
+                  className="absolute bottom-full mb-2 bg-white border border-gray-200 rounded-xl p-4 z-50"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <DayPicker
@@ -262,14 +280,14 @@ export default function Form({ onSubmit }) {
             <button
               type="button"
               onClick={handleReset}
-              className="px-6 py-2 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 font-medium"
+              className="px-6 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium"
             >
               Reset Form
             </button>
 
             <button
               type="submit"
-              className="px-8 py-2 rounded-lg bg-teal-600 text-white font-semibold hover:bg-teal-500"
+              className="px-8 py-2 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-800"
             >
               Add
             </button>

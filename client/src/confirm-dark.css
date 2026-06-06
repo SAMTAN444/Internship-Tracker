@@ -3,16 +3,16 @@
 }
 
 .react-confirm-alert-body {
-  background: #1f2937; /* bg-gray-800 */
-  color: #e5e7eb;      /* text-gray-200 */
+  background: #ffffff; /* white */
+  color: #111827;      /* gray-900 */
   border-radius: 1rem;
-  border: 1px solid #374151; /* border-gray-700 */
+  border: 1px solid #e5e7eb; /* gray-200 */
   padding: 2rem;
 }
 
 .react-confirm-alert-button-group button {
-  background: #374151; /* gray-700 */
-  color: #e5e7eb;      /* gray-200 */
+  background: #f3f4f6; /* gray-100 */
+  color: #111827;      /* gray-900 */
   border-radius: 0.5rem;
   border: none;
   padding: 0.5rem 1rem;
@@ -20,5 +20,5 @@
 }
 
 .react-confirm-alert-button-group button:hover {
-  background: #4b5563; /* gray-600 */
+  background: #e5e7eb; /* gray-200 */
 }

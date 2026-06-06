@@ -17,9 +17,9 @@ const isStrongPassword = (password) => {
 // @route POST /api/auth/register
 export const registerUser = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { username, password } = req.body;
 
-        if (!name || !email || !password) {
+        if (!username || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -34,29 +34,27 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        if (typeof name !== "string" || name.trim().length < 2) {
+        if (typeof username !== "string" || username.trim().length < 3) {
             return res.status(400).json({
-                message: "Name must be at least 2 characters long",
+                message: "Username must be at least 3 characters long",
             });
         }
 
-        const userExists = await User.findOne({ email: email.toLowerCase() });
+        const userExists = await User.findOne({ username: username.trim() });
         if (userExists) {
-            return res.status(400).json({ message: "User already exists" });
+            return res.status(400).json({ message: "Username already taken" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
-            name: name.trim(),
-            email: email.toLowerCase(),
+            username: username.trim(),
             password: hashedPassword,
         });
 
         res.status(201).json({
             _id: user._id,
-            name: user.name,
-            email: user.email,
+            username: user.username,
             token: generateToken(user._id),
         });
     } catch (err) {
@@ -68,31 +66,34 @@ export const registerUser = async (req, res) => {
 
 // @route POST /api/auth/login
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body
+    try {
+        const { username, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        const user = await User.findOne({ username: (username || "").trim() });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        res.json({
+            _id: user._id,
+            username: user.username,
+            token: generateToken(user._id),
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id)
-    });
 };
 
-// @route GET/api/auth/me
+// @route GET /api/auth/me
 export const getMe = async (req, res) => {
     res.json({
         _id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
+        username: req.user.username,
     });
 }
