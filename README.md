@@ -21,14 +21,15 @@ Trackly was built to serve as a **single source of truth** for internship applic
 
 ## Core Features
 
-- Secure user authentication (Register / Login / Logout)
+- Secure username-based authentication (Register / Login / Logout)
 - User-specific internship tracking (data isolated per account)
 - Create, edit, and delete internship entries
 - Application status management (Applied, Interviewing, Offer, Rejected, Archived)
 - Batch status updates for multiple entries
 - Reminder system to prevent missed follow-ups and deadlines
 - Pagination and filtering for scalable data handling
-- Responsive, mobile-friendly UI
+- Landing page with clean, light-themed UI
+- Responsive, mobile-friendly design
 
 ---
 
@@ -83,6 +84,7 @@ MongoDB Database
 
 ## Authentication & Security
 
+- Username and password authentication (no email required)
 - Passwords are hashed before storage
 - JWT used for secure, stateless authentication
 - Protected routes enforced on both frontend and backend
