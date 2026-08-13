@@ -1,5 +1,5 @@
 import { useState } from "react";
-import API from "../services/api";
+import API, { setSession } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { HiExclamationCircle } from "react-icons/hi";
 import { toast } from "react-toastify";
@@ -21,7 +21,7 @@ export default function Login({ onAuth }) {
         username,
         password,
       });
-      localStorage.setItem("token", data.token);
+      setSession({ token: data.token, refreshToken: data.refreshToken });
       onAuth?.();
       navigate("/dashboard", { replace: true });
       toast.success("Successfully Logged In");

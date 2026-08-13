@@ -7,25 +7,32 @@ import NotesPage from "./pages/NotesPage";
 import LandingPage from "./pages/LandingPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AUTH_CHANGED, getAccessToken } from "./services/api";
 
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
+function ProtectedRoute({ token, children }) {
   if (!token) return <Navigate to="/" replace />;
   return children;
 }
 
 function App() {
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [token, setToken] = useState(getAccessToken);
 
-  // Keep App in sync when token changes (logout/login)
+  // Keep App in sync when the token changes (login, logout, refresh, or the
+  // interceptor clearing a dead session).
   useEffect(() => {
-    const syncToken = () => setToken(localStorage.getItem("token"));
+    const syncToken = () => setToken(getAccessToken());
 
-    // Same-tab changes (we'll call syncToken manually from logout/login too)
-    // Cross-tab changes
+    // AUTH_CHANGED covers this tab; `storage` covers the others.
+    window.addEventListener(AUTH_CHANGED, syncToken);
     window.addEventListener("storage", syncToken);
 
-    return () => window.removeEventListener("storage", syncToken);
+    // Re-check on mount in case the session changed before the listener attached.
+    syncToken();
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED, syncToken);
+      window.removeEventListener("storage", syncToken);
+    };
   }, []);
 
   return (
@@ -38,17 +45,17 @@ function App() {
 
         <Route
           path="/login"
-          element={token ? <Navigate to="/dashboard" replace /> : <Login onAuth={() => setToken(localStorage.getItem("token"))} />}
+          element={token ? <Navigate to="/dashboard" replace /> : <Login onAuth={() => setToken(getAccessToken())} />}
         />
         <Route
           path="/register"
-          element={token ? <Navigate to="/dashboard" replace /> : <Register onAuth={() => setToken(localStorage.getItem("token"))} />}
+          element={token ? <Navigate to="/dashboard" replace /> : <Register onAuth={() => setToken(getAccessToken())} />}
         />
 
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute token={token}>
               <Dashboard onLogout={() => setToken(null)} />
             </ProtectedRoute>
           }
@@ -56,7 +63,7 @@ function App() {
         <Route
           path="/notes/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute token={token}>
               <NotesPage />
             </ProtectedRoute>
           }

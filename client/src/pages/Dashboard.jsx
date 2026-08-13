@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import API, { endSession } from "../services/api";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
 import EditInternshipModal from "../components/EditInternshipModal";
@@ -33,6 +33,7 @@ export default function Dashboard({ onLogout }) {
   const [upcomingReminders, setUpcomingReminders] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
   const [scope, setScope] = useState("active");
+  const [bootError, setBootError] = useState(null);
 
   const listParams = {
     page,
@@ -44,8 +45,8 @@ export default function Dashboard({ onLogout }) {
     scope,
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    await endSession();
     delete API.defaults.headers.common.Authorization;
     toast.success("Successfully Logged Out");
     onLogout?.();
@@ -223,27 +224,48 @@ export default function Dashboard({ onLogout }) {
     try {
       const { data } = await API.get("/api/internships/reminders/upcoming");
       setUpcomingReminders(data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch reminders");
     }
   };
 
-  useEffect(() => {
-    async function init() {
-      try {
-        const res = await API.get("/api/auth/me");
-        setUser(res.data);
-        await fetchUpcomingReminders();
-      } catch {
-        navigate("/login", { replace: true });
-      } finally {
-        setLoading(false);
+  const init = async () => {
+    setLoading(true);
+    setBootError(null);
+    try {
+      const res = await API.get("/api/auth/me");
+      setUser(res.data);
+      await fetchUpcomingReminders();
+    } catch (err) {
+      if (err.response?.status === 401) {
+        // The interceptor already tried to refresh and failed, so the session
+        // is genuinely dead and the token is gone. onLogout drops App's token
+        // state too — without it the /login route bounces straight back here.
+        onLogout?.();
+        navigate("/", { replace: true });
+        return;
       }
+      // Network error or a cold-starting API. The session is probably fine, so
+      // offer a retry instead of rendering a signed-in shell with no user.
+      setBootError(
+        err.response
+          ? "Couldn't load your account. Please try again."
+          : "Can't reach the server. It may be waking up — this can take up to a minute."
+      );
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     init();
   }, []);
 
   useEffect(() => {
+    // Don't fetch until the session is confirmed, otherwise this races the
+    // /me call and fires a second doomed request on an expired token.
+    if (!user) return;
+
     API.get("/api/internships", {
       params: {
         page,
@@ -259,14 +281,42 @@ export default function Dashboard({ onLogout }) {
         setInternships(res.data.data);
         setTotal(res.data.total);
       })
-      .catch(console.error);
-  }, [page, limit, searchquery, searchField, sortField, sortOrder, scope]);
+      .catch((err) => {
+        console.error(err);
+        if (err.response?.status !== 401) {
+          toast.error("Failed to load internships");
+        }
+      });
+  }, [user, page, limit, searchquery, searchField, sortField, sortOrder, scope]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
         <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
         <p className="mt-4 text-sm text-gray-600">Loading dashboard…</p>
+      </div>
+    );
+  }
+
+  if (bootError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 text-center">
+        <img src={logo} alt="" className="h-10 w-auto mb-6" />
+        <p className="max-w-sm text-sm text-gray-600">{bootError}</p>
+        <div className="mt-6 flex items-center gap-3">
+          <button
+            onClick={init}
+            className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md hover:bg-gray-800"
+          >
+            Try again
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm text-gray-700 rounded-md border border-gray-200 hover:bg-gray-50"
+          >
+            Log out
+          </button>
+        </div>
       </div>
     );
   }
