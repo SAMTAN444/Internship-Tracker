@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+// Pipeline order. Also drives the custom sort in getInternships.
+export const STATUSES = ["Applied", "OA", "Interview", "Offer", "Rejected", "Archived"];
+export const CYCLES = ["Spring", "Summer", "Fall", "Winter", "6-Month"];
+
+// Only these statuses can carry a reminder; moving to any other clears it.
+export const REMINDER_STATUSES = ["OA", "Interview"];
+
+// Fields a client may set on create/update. Anything else in the body
+// (user, _id, reminder, timestamps) is ignored.
+export const EDITABLE_FIELDS = ["company", "role", "status", "cycle", "appliedAt", "applicationLink", "notes"];
+
 const internshipSchema = new mongoose.Schema (
     {
         user: {
@@ -19,12 +30,12 @@ const internshipSchema = new mongoose.Schema (
         },
         status: {
             type: String,
-            enum: ["Applied", "OA", "Interview", "Offer", "Rejected", "Archived"],
+            enum: STATUSES,
             default: "Applied",
         },
         cycle: {
             type: String,
-            enum: ["Spring", "Summer", "Fall", "Winter", "6-Month"],
+            enum: CYCLES,
             required: true,
         },
         appliedAt: {
@@ -41,7 +52,7 @@ const internshipSchema = new mongoose.Schema (
         reminder: {
             type: {
                 type: String,
-                enum: ["OA", "Interview"],
+                enum: REMINDER_STATUSES,
             },
             remindAt: Date,
 

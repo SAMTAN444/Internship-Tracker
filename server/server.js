@@ -5,6 +5,7 @@ import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js"
 import { protect } from "./middleware/authMiddleware.js"
 import internshipRoutes from "./routes/internshipRoutes.js"
+import errorHandler from "./middleware/errorHandler.js"
 
 dotenv.config();
 
@@ -30,6 +31,9 @@ app.get("/api/me", protect, (req, res) => {
 app.get("/", (req, res) => {
     res.send("API running");
 });
+
+// Must be registered after all routes
+app.use(errorHandler);
 
 
 

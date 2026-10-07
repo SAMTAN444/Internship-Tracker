@@ -6,30 +6,30 @@ import {
     deleteInternship,
     updateBulkStatus,
     getInternshipsById,
-    setReminder,
-    clearReminder,
-    getUpcomingReminders,
 } from "../controllers/internshipController.js"
+import { setReminder, clearReminder, getUpcomingReminders } from "../controllers/reminderController.js"
 import { protect } from "../middleware/authMiddleware.js"
 
 const router = express.Router();
 
-router.put("/bulk-status", protect, updateBulkStatus);
+// Every internship route is per-user.
+router.use(protect);
 
-router.get("/reminders/upcoming", protect, getUpcomingReminders);
+// Literal paths first so they aren't captured by "/:id"
+router.put("/bulk-status", updateBulkStatus);
+router.get("/reminders/upcoming", getUpcomingReminders);
 
 router.route("/")
-    .post(protect, createInternship)
-    .get(protect, getInternships);
+    .post(createInternship)
+    .get(getInternships);
 
 router.route("/:id")
-    .get(protect, getInternshipsById)
-    .put(protect, updateInternship)
-    .delete(protect, deleteInternship);
+    .get(getInternshipsById)
+    .put(updateInternship)
+    .delete(deleteInternship);
 
 router.route("/:id/reminder")
-    .put(protect, setReminder)
-    .delete(protect, clearReminder);
+    .put(setReminder)
+    .delete(clearReminder);
 
 export default router;
-

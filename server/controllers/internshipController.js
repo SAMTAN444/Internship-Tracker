@@ -1,10 +1,30 @@
-import Internship from "../models/Internship.js"
+import Internship, { STATUSES, CYCLES, REMINDER_STATUSES, EDITABLE_FIELDS } from "../models/Internship.js"
+import findOwned from "../utils/findOwned.js"
+import HttpError from "../utils/HttpError.js"
+
+const SEARCHABLE_FIELDS = ["company", "role", "status", "cycle"];
+const MAX_LIMIT = 50;
+
+const pick = (obj, keys) =>
+    Object.fromEntries(keys.filter((k) => obj?.[k] !== undefined).map((k) => [k, obj[k]]));
+
+// Search text is user input; escape it so it can't be a (slow) regex pattern.
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Maps an enum field to its position in `values` so status/cycle sort in
+// pipeline order instead of alphabetically.
+const orderSwitch = (field, values) => ({
+    $switch: {
+        branches: values.map((value, i) => ({ case: { $eq: [`$${field}`, value] }, then: i })),
+        default: 99,
+    },
+});
 
 // @route POST /api/internships
 export const createInternship = async (req, res) => {
     const internship = await Internship.create({
+        ...pick(req.body, EDITABLE_FIELDS),
         user: req.user._id,
-        ...req.body,
     });
 
     res.status(201).json(internship);
@@ -13,88 +33,54 @@ export const createInternship = async (req, res) => {
 // @route GET /api/internships
 export const getInternships = async (req, res) => {
     const {
-        page = 1,
-        limit = 10,
         q = "",
         field = "",
         sortField = "",
         sortOrder = "asc",
-        scope = "active", // ✅ NEW: "active" | "archived"
+        scope = "active", // "active" | "archived"
     } = req.query;
 
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-    const skip = (pageNum - 1) * limitNum;
+    const pageNum = Math.max(1, parseInt(req.query.page) || 1);
+    const limitNum = Math.min(MAX_LIMIT, Math.max(1, parseInt(req.query.limit) || 10));
 
-    const baseQuery = { user: req.user._id };
+    // active = everything except Archived, archived = only Archived
+    const query = {
+        user: req.user._id,
+        status: scope === "archived" ? "Archived" : { $ne: "Archived" },
+    };
 
-    // ✅ Scope filter
-    // active = everything except Archived
-    // archived = only Archived
-    if (scope === "archived") {
-        baseQuery.status = "Archived";
-    } else {
-        baseQuery.status = { $ne: "Archived" };
-    }
-
-    const query = { ...baseQuery };
-
-    // Search
     if (q) {
-        const searchRegex = new RegExp(q, "i");
-        if (field) {
-            query[field.toLowerCase()] = searchRegex;
+        const searchRegex = new RegExp(escapeRegex(String(q)), "i");
+        const searchField = String(field).toLowerCase();
+
+        if (SEARCHABLE_FIELDS.includes(searchField)) {
+            query[searchField] = searchRegex;
         } else {
-            query.$or = [
-                { company: searchRegex },
-                { role: searchRegex },
-                { status: searchRegex },
-                { cycle: searchRegex },
-            ];
+            query.$or = SEARCHABLE_FIELDS.map((f) => ({ [f]: searchRegex }));
         }
     }
 
-    const cycleOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4, "6-Month": 5 };
-    const statusOrder = { Applied: 1, OA: 2, Interview: 3, Offer: 4, Rejected: 5, Archived: 6 };
-
+    const direction = sortOrder === "asc" ? 1 : -1;
     const sortStage = {
-        ...(sortField === "cycle" ? { cycleSort: sortOrder === "asc" ? 1 : -1 } : {}),
-        ...(sortField === "status" ? { statusSort: sortOrder === "asc" ? 1 : -1 } : {}),
-        ...(sortField === "appliedAt" ? { appliedAt: sortOrder === "asc" ? 1 : -1 } : {}),
-        ...(sortField === "" ? { createdAt: -1 } : {}),
-    };
+        cycle: { cycleSort: direction },
+        status: { statusSort: direction },
+        appliedAt: { appliedAt: direction },
+    }[sortField] || { createdAt: -1 };
 
     const [data, total] = await Promise.all([
         Internship.aggregate([
             { $match: query },
             {
                 $addFields: {
-                    cycleSort: {
-                        $switch: {
-                            branches: Object.entries(cycleOrder).map(([key, val]) => ({
-                                case: { $eq: ["$cycle", key] },
-                                then: val,
-                            })),
-                            default: 99,
-                        },
-                    },
-                    statusSort: {
-                        $switch: {
-                            branches: Object.entries(statusOrder).map(([key, val]) => ({
-                                case: { $eq: ["$status", key] },
-                                then: val,
-                            })),
-                            default: 99,
-                        },
-                    },
+                    cycleSort: orderSwitch("cycle", CYCLES),
+                    statusSort: orderSwitch("status", STATUSES),
                 },
             },
             { $sort: sortStage },
-            { $skip: skip },
+            { $skip: (pageNum - 1) * limitNum },
             { $limit: limitNum },
         ]),
         Internship.countDocuments(query),
-
     ]);
 
     res.json({
@@ -105,180 +91,53 @@ export const getInternships = async (req, res) => {
     });
 };
 
-
 // @route GET /api/internships/:id
 export const getInternshipsById = async (req, res) => {
-    const internship = await Internship.findOne({
-        _id: req.params.id,
-        user: req.user._id,
-    }
-    );
-
-    if (!internship) {
-        return res.status(404).json({ message: "Internship not found " });
-    }
-
-    return res.json(internship);
-}
+    res.json(await findOwned(req.params.id, req.user._id));
+};
 
 // @route PUT /api/internships/:id
 export const updateInternship = async (req, res) => {
-    const internship = await Internship.findById(req.params.id);
+    const internship = await findOwned(req.params.id, req.user._id);
 
-    if (!internship) {
-        return res.status(404).json({ message: "Internship not found" });
-    }
-    if (internship.user.toString() !== req.user._id.toString()) {
-        return res.status(401).json({ message: "Not authorized" });
-    }
+    Object.assign(internship, pick(req.body, EDITABLE_FIELDS));
 
-    Object.assign(internship, req.body);
-
-    // Enforce reminder rule
-    if (
-        req.body.status && !["OA", "Interview"].includes(req.body.status)
-    ) {
+    // Reminders only make sense for OA/Interview
+    if (req.body.status && !REMINDER_STATUSES.includes(req.body.status)) {
         internship.reminder = null;
     }
 
-    const updated = await internship.save();
-
-    res.json(updated);
-}
+    res.json(await internship.save());
+};
 
 // @route DELETE /api/internships/:id
 export const deleteInternship = async (req, res) => {
-    const internship = await Internship.findById(req.params.id);
-    if (!internship) {
-        return res.status(404).json({ message: "Internship not found" });
-    }
-    if (internship.user.toString() !== req.user._id.toString()) {
-        return res.status(401).json({ message: "Not authorized" });
-    }
-
+    const internship = await findOwned(req.params.id, req.user._id);
     await internship.deleteOne();
     res.json({ message: "Internship removed" });
-}
-
+};
 
 // @route PUT /api/internships/bulk-status
 export const updateBulkStatus = async (req, res) => {
     const { ids, status } = req.body;
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({ message: "No internships selected" });
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        throw new HttpError(400, "No internships selected");
+    }
+    // updateMany skips schema validation, so check the enum here.
+    if (!STATUSES.includes(status)) {
+        throw new HttpError(400, "Invalid status");
     }
 
     const update = { status };
-
-    // 🔒 Enforce reminder rule
-    if (!["OA", "Interview"].includes(status)) {
+    if (!REMINDER_STATUSES.includes(status)) {
         update.reminder = null;
     }
 
     await Internship.updateMany(
         { _id: { $in: ids }, user: req.user._id },
         { $set: update }
-
     );
-
 
     res.json({ message: "Status updated successfully" });
 };
-
-// @route PUT /api/internships/:id/reminder
-export const setReminder = async (req, res) => {
-    const { type, remindAt, location } = req.body;
-
-    if (!type || !remindAt) {
-        return res.status(400).json({ message: "Reminder type and time required" });
-    }
-
-    if (type === "Interview" && !location) {
-        return res.status(400).json({
-            message: "Interview location is required",
-        })
-    }
-
-    if (!["OA", "Interview"].includes(type)) {
-        return res.status(400).json({ message: "Invalid reminder type" });
-    }
-
-    const internship = await Internship.findById(req.params.id);
-
-    if (!internship) {
-        return res.status(404).json({ message: "Internship not found" });
-    }
-
-    if (internship.user.toString() !== req.user._id.toString()) {
-        return res.status(401).json({ message: "Not authorized" });
-    }
-
-    if (internship.status !== type) {
-        return res.status(400).json({
-            message: `Cannot set ${type} reminder when status is ${internship.status}`,
-        });
-    }
-
-    const remindDate = new Date(remindAt);
-    if (isNaN(remindDate.getTime())) {
-        return res.status(400).json({ message: "Invalid reminder date" });
-    }
-
-    if (remindDate <= new Date()) {
-        return res.status(400).json({ message: "Reminder must be in the future" })
-    }
-
-    internship.reminder = {
-        type,
-        remindAt: remindDate,
-        location: type === "Interview" ? location : null,
-    };
-
-    await internship.save();
-
-    res.json({
-        message: "Reminder set successfully",
-        reminder: internship.reminder,
-    })
-}
-
-// @route DELETE /api/internships/:id/reminder
-export const clearReminder = async (req, res) => {
-    const internship = await Internship.findById(req.params.id);
-
-    if (!internship) {
-        return res.status(404).json({ message: "Internship not found" });
-    }
-
-    if (internship.user.toString() !== req.user._id.toString()) {
-        return res.status(401).json({ message: "Not authorized" });
-    }
-
-    internship.reminder = null;
-    await internship.save();
-
-    res.json({ message: "Reminder removed" });
-}
-
-export const getUpcomingReminders = async (req, res) => {
-    try {
-        const now = new Date();
-
-        const reminders = await Internship.find({
-            user: req.user._id,
-            "reminder.remindAt": { $gt: now },
-            status: { $in: ["OA", "Interview"] },
-        })
-            .select("_id company role status reminder")
-            .sort({ "reminder.remindAt": 1 })
-            .limit(4)
-            .lean();
-
-        res.json(reminders);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            message: "Failed to fetch upcoming reminders",
-        })
-    }
-}
