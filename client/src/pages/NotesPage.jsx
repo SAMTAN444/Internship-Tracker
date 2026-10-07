@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import API from "../services/api";
+import { getInternship, updateInternship } from "../services/internships";
 import { toast } from "react-toastify";
 import ReactMarkdown from "react-markdown";
 import logo from "../assets/logo.svg";
@@ -19,11 +19,11 @@ export default function NotesPage() {
   const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
   useEffect(() => {
-    API.get(`/api/internships/${id}`)
-      .then((res) => {
-        setInternship(res.data);
-        setNotes(res.data.notes || "");
-        setOriginalNotes(res.data.notes || "");
+    getInternship(id)
+      .then((data) => {
+        setInternship(data);
+        setNotes(data.notes || "");
+        setOriginalNotes(data.notes || "");
         setLoading(false);
       })
       .catch(() => {
@@ -34,7 +34,7 @@ export default function NotesPage() {
 
   const handleSave = useCallback(async () => {
     try {
-      await API.put(`/api/internships/${id}`, { notes });
+      await updateInternship(id, { notes });
       setOriginalNotes(notes);
       toast.success("Notes updated");
     } catch (err) {

@@ -1,4 +1,5 @@
 import { FileText, Pencil, Trash2, Bell } from "lucide-react";
+import { STATUS_STYLES, CYCLE_STYLES } from "./statusStyles";
 
 export default function InternCard({
   intern,
@@ -9,31 +10,6 @@ export default function InternCard({
   onOpenNotes,
   onOpenReminder,
 }) {
-  const cycleStyles = {
-    Spring: "bg-green-100 text-green-800",
-    Summer: "bg-amber-100 text-amber-800",
-    Fall: "bg-orange-100 text-orange-800",
-    Winter: "bg-blue-100 text-blue-800",
-    "6-Month": "bg-purple-100 text-purple-800",
-  };
-
-  const CYCLE_META = {
-    Spring: { label: "Spring", desc: "Jan–Apr" },
-    Summer: { label: "Summer", desc: "May–Aug" },
-    Fall: { label: "Fall", desc: "Sept–Dec" },
-    Winter: { label: "Winter", desc: "Dec–Jan" },
-    "6-Month": { label: "6-Month", desc: "" },
-  };
-
-  const statusStyles = {
-    Applied: "bg-gray-100 text-gray-800 border border-gray-300",
-    OA: "bg-purple-100 text-purple-900 border border-purple-300",
-    Interview: "bg-amber-100 text-amber-900 border border-amber-300",
-    Offer: "bg-[#CBFF9E] text-gray-900 border border-green-600",
-    Rejected: "bg-red-100 text-red-900 border border-red-300",
-    Archived: "bg-gray-100 text-gray-700 border border-gray-300",
-  };
-
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
       {/* Top row */}
@@ -55,7 +31,7 @@ export default function InternCard({
 
         <span
           className={`shrink-0 text-xs px-2.5 py-1 rounded-full font-medium
-    ${statusStyles[intern.status] || "bg-gray-100 text-gray-800"}
+    ${STATUS_STYLES[intern.status] || "bg-gray-100 text-gray-800"}
   `}
         >
           {intern.status}
@@ -66,10 +42,10 @@ export default function InternCard({
       <div className="mt-3 flex justify-between text-xs text-gray-600">
         <span
           className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-medium
-    ${cycleStyles[intern.cycle] || "bg-gray-100 text-gray-700"}
+    ${CYCLE_STYLES[intern.cycle] || "bg-gray-100 text-gray-700"}
   `}
         >
-          {CYCLE_META[intern.cycle]?.label || intern.cycle}
+          {intern.cycle}
         </span>
 
         <span>{new Date(intern.appliedAt).toLocaleDateString()}</span>

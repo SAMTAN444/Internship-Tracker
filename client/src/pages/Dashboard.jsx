@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import useInternships from "../hooks/useInternships";
 import VerifyEmailBanner from "../components/VerifyEmailBanner";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
@@ -18,31 +18,14 @@ import gogginsImage from "../assets/goggins.png";
 
 export default function Dashboard() {
   const { profile, signOut } = useAuth();
-  const [internships, setInternships] = useState([]);
+  const list = useInternships();
+  const { actionLoading, saveReminder } = list;
+
+  // UI-only state; the data itself lives in useInternships
   const [editing, setEditing] = useState(null);
+  const [reminderTarget, setReminderTarget] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [statusToUpdate, setStatusToUpdate] = useState("Applied");
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [searchquery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState("");
-  const [sortField, setSortField] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [reminderTarget, setReminderTarget] = useState(null);
-  const [upcomingReminders, setUpcomingReminders] = useState([]);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [scope, setScope] = useState("active");
-
-  const listParams = {
-    page,
-    limit,
-    q: searchquery,
-    field: searchField,
-    sortField,
-    sortOrder,
-    scope,
-  };
 
   const handleLogout = async () => {
     // ProtectedRoute sends the signed-out user to /login
@@ -50,54 +33,14 @@ export default function Dashboard() {
     toast.success("Logged out");
   };
 
-  const addInternship = async (formData) => {
-    setActionLoading(true);
-    try {
-      await API.post("/api/internships", {
-        company: formData.company,
-        role: formData.role,
-        cycle: formData.cycle,
-        status: "Applied",
-        appliedAt: formData.appliedAt,
-        applicationLink: formData.link,
-        notes: formData.notes,
-      });
-      toast.success("Internship added");
-
-      const { data } = await API.get("/api/internships", {
-        params: {
-          page: 1,
-          limit,
-          q: searchquery,
-          field: searchField,
-          sortField,
-          sortOrder,
-          scope,
-        },
-      });
-
-      setPage(1);
-      setInternships(data.data);
-      setTotal(data.total);
-
-      return true;
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to add internship");
-      return false;
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const deleteInternship = (id) => {
+  const confirmDelete = (id) => {
     confirmAlert({
       title: "Delete Internship",
       message: "Are you sure you want to delete this internship?",
       buttons: [
         {
           label: "Yes",
-          onClick: () => actuallyDelete(id),
+          onClick: () => list.removeInternship(id),
         },
         {
           label: "No",
@@ -105,155 +48,15 @@ export default function Dashboard() {
       ],
     });
   };
-  const actuallyDelete = async (id) => {
-    setActionLoading(true);
-    try {
-      await API.delete(`/api/internships/${id}`);
-
-      toast.success("Internship deleted");
-
-      const { data } = await API.get("/api/internships", {
-        params: listParams,
-      });
-
-      if (data.data.length === 0 && page > 1) {
-        setPage(page - 1);
-      } else {
-        setInternships(data.data);
-        setTotal(data.total);
-      }
-      await fetchUpcomingReminders();
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete internship");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSaveReminder = async (id, reminder) => {
-    setActionLoading(true);
-    try {
-      if (reminder) {
-        await API.put(`/api/internships/${id}/reminder`, reminder);
-        toast.success("Reminder saved");
-      } else {
-        await API.delete(`/api/internships/${id}/reminder`);
-        toast.success("Reminder removed");
-      }
-
-      const { data } = await API.get("/api/internships", {
-        params: listParams,
-      });
-
-      setInternships(data.data);
-      setTotal(data.total);
-
-      await fetchUpcomingReminders();
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to update reminder");
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleBulkUpdate = async () => {
-    if (selectedIds.length === 0) {
-      toast.info("No internships selected");
-      return;
-    }
-
-    // If user is in archived tab, the only valid action is Unarchive (Applied)
-    if (scope === "archived" && statusToUpdate !== "Applied") {
-      toast.info("Select Unarchive to move items back to Active");
-      return;
-    }
-
-    setActionLoading(true);
-
-    try {
-      await API.put("/api/internships/bulk-status", {
-        ids: selectedIds,
-        status: statusToUpdate,
-      });
-
-      toast.success("Successfully updated internships");
-
-      // ✅ Decide where user should land AFTER the action
-      const nextScope =
-        statusToUpdate === "Archived"
-          ? "archived"
-          : scope === "archived" && statusToUpdate === "Applied"
-            ? "active"
-            : scope;
-
-      // ✅ Update UI state
-      setScope(nextScope);
-      setPage(1);
+    if (await list.updateStatus(selectedIds, statusToUpdate)) {
       setSelectedIds([]);
-
-      // ✅ Fetch using nextScope (NOT old scope)
-      const { data } = await API.get("/api/internships", {
-        params: {
-          page: 1,
-          limit,
-          q: searchquery,
-          field: searchField,
-          sortField,
-          sortOrder,
-          scope: nextScope,
-        },
-      });
-
-      setInternships(data.data);
-      setTotal(data.total);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to update internships");
-    } finally {
-      setActionLoading(false);
+      // The update may have switched tabs; "Applied" is the default in both
+      // (shown as "Unarchive" in the archived tab)
+      setStatusToUpdate("Applied");
     }
   };
-
-
-  const fetchUpcomingReminders = async () => {
-    try {
-      const { data } = await API.get("/api/internships/reminders/upcoming");
-      setUpcomingReminders(data);
-    } catch {
-      toast.error("Failed to fetch reminders");
-    }
-  };
-
-  // ProtectedRoute only renders this page once the profile has loaded.
-  useEffect(() => {
-    fetchUpcomingReminders();
-  }, []);
-
-  useEffect(() => {
-    API.get("/api/internships", {
-      params: {
-        page,
-        limit,
-        q: searchquery,
-        field: searchField,
-        sortField,
-        sortOrder,
-        scope, // ✅ THIS is the key
-      },
-    })
-      .then((res) => {
-        setInternships(res.data.data);
-        setTotal(res.data.total);
-      })
-      .catch((err) => {
-        console.error(err);
-        if (err.response?.status !== 401) {
-          toast.error("Failed to load internships");
-        }
-      });
-  }, [page, limit, searchquery, searchField, sortField, sortOrder, scope]);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 flex flex-col">
@@ -317,12 +120,7 @@ export default function Dashboard() {
           intern={editing}
           onClose={() => setEditing(null)}
           onSave={async () => {
-            const { data } = await API.get("/api/internships", {
-              params: listParams,
-            });
-
-            setInternships(data.data);
-            setTotal(data.total);
+            await list.refresh();
             setEditing(null);
           }}
         />
@@ -334,9 +132,9 @@ export default function Dashboard() {
             {/* LEFT */}
             <div className="flex flex-col gap-6 md:h-full min-h-0">
               <RemindersPanel
-                reminders={upcomingReminders}
+                reminders={list.upcomingReminders}
                 onOpen={(intern) => setReminderTarget(intern)}
-                onDelete={(id) => handleSaveReminder(id, null)}
+                onDelete={(id) => saveReminder(id, null)}
               />
 
               {/* Goggins Card (separate card below reminders) */}
@@ -378,7 +176,7 @@ export default function Dashboard() {
 
             {/* RIGHT */}
             <div className="flex flex-col md:h-full">
-              <Form onSubmit={addInternship} />
+              <Form onSubmit={list.addInternship} />
             </div>
           </div>
         </div>
@@ -387,31 +185,15 @@ export default function Dashboard() {
       <main className="px-4 md:px-6 py-4 md:py-6 flex justify-center">
         <div className="w-full max-w-screen-2xl overflow-x-auto">
           <InternTable
-            internships={internships}
+            list={list}
             selectedIds={selectedIds}
             setSelectedIds={setSelectedIds}
             statusToUpdate={statusToUpdate}
             setStatusToUpdate={setStatusToUpdate}
             onBulkUpdate={handleBulkUpdate}
             onEdit={setEditing}
-            onDelete={deleteInternship}
-            page={page}
-            setPage={setPage}
-            total={total}
-            limit={limit}
-            searchquery={searchquery}
-            setSearchQuery={setSearchQuery}
-            searchField={searchField}
-            setSearchField={setSearchField}
-            sortField={sortField}
-            setSortField={setSortField}
-            sortOrder={sortOrder}
-            setSortOrder={setSortOrder}
-            onSaveReminder={handleSaveReminder}
-            setReminderTarget={setReminderTarget}
-            loading={actionLoading}
-            scope={scope}
-            setScope={setScope}
+            onDelete={confirmDelete}
+            onOpenReminder={setReminderTarget}
           />
         </div>
       </main>
@@ -420,11 +202,11 @@ export default function Dashboard() {
           intern={reminderTarget}
           onClose={() => setReminderTarget(null)}
           onSave={(reminder) => {
-            handleSaveReminder(reminderTarget._id, reminder);
+            saveReminder(reminderTarget._id, reminder);
             setReminderTarget(null);
           }}
           onRemove={() => {
-            handleSaveReminder(reminderTarget._id, null);
+            saveReminder(reminderTarget._id, null);
             setReminderTarget(null);
           }}
           loading={actionLoading}

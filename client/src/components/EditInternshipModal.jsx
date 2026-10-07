@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, CalendarClock, Leaf, Sun, Wind, Snowflake } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import API from "../services/api";
+import { updateInternship } from "../services/internships";
 import "react-day-picker/dist/style.css";
 import { toast } from "react-toastify";
 
@@ -77,7 +77,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
 
   const handleSubmit = async () => {
     try {
-      const { data } = await API.put(`/api/internships/${intern._id}`, {
+      const data = await updateInternship(intern._id, {
         company: form.company,
         role: form.role,
         cycle: form.cycle,
