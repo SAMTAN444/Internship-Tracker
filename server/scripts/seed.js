@@ -5,21 +5,29 @@
  *   node scripts/seed.js --uri "mongodb+srv://..."
  *   node scripts/seed.js --users 60         # how many demo users (default 60)
  *   node scripts/seed.js --clean            # remove everything this script created
+ *   node scripts/seed.js --wipe-all --yes   # delete EVERY user and internship
  *
- * Everything it creates is namespaced under the DEMO_PREFIX username prefix, so
- * --clean can remove exactly the seeded data and nothing else. Writing to a
- * non-localhost database requires --yes.
+ * Each demo user is a real Firebase Auth account (email demo_…@example.com,
+ * already verified) plus a Mongo profile linked by firebaseUid. Everything is
+ * namespaced under the DEMO_PREFIX username prefix, so --clean removes exactly
+ * the seeded data and nothing else. Writing to a non-localhost database
+ * requires --yes.
  */
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import User from "../models/User.js";
 import Internship from "../models/Internship.js";
+import { adminAuth } from "../config/firebase.js";
+import {
+    DEMO_PREFIX,
+    DEMO_PASSWORD,
+    demoEmail,
+    makeUsernames,
+    buildInternship,
+    randInt,
+} from "./demo-data.js";
 
 dotenv.config();
-
-const DEMO_PREFIX = "demo_";
-const DEMO_PASSWORD = "Password1!"; // satisfies the register endpoint's strength rules
 
 const arg = (flag, fallback = null) => {
     const i = process.argv.indexOf(flag);
@@ -32,68 +40,8 @@ const has = (flag) => process.argv.includes(flag);
 const uri = arg("--uri", process.env.MONGO_URI);
 const userCount = Number(arg("--users", 60));
 
-const FIRST_NAMES = [
-    "alex", "brianna", "caleb", "denise", "elliot", "farah", "gavin", "hana",
-    "isaac", "jolene", "kelvin", "lena", "marcus", "nadia", "owen", "priya",
-    "quentin", "rachel", "samir", "tessa", "umar", "vivian", "wesley", "xinyi",
-    "yusuf", "zoe", "amelia", "bryan", "chloe", "darren",
-];
-const LAST_INITIALS = "abcdefghijklmnopqrstuvwxyz".split("");
-
-const COMPANIES = [
-    "Shopee", "Grab", "GovTech", "DBS Bank", "Sea Group", "TikTok", "Stripe",
-    "Google", "Meta", "Jane Street", "Optiver", "Citadel", "Visa", "Micron",
-    "ST Engineering", "Autodesk", "Palantir", "Airbnb", "Bytedance", "OCBC",
-    "UOB", "Razer", "Zendesk", "Salesforce", "Amazon", "Microsoft", "Nvidia",
-    "Ninja Van", "Carousell", "Circles.Life",
-];
-const ROLES = [
-    "Software Engineer Intern", "Backend Engineer Intern", "Frontend Engineer Intern",
-    "Data Engineer Intern", "Machine Learning Intern", "DevOps Intern",
-    "Security Engineer Intern", "Product Manager Intern", "Quantitative Trader Intern",
-    "Full Stack Developer Intern", "Site Reliability Engineer Intern", "Data Analyst Intern",
-];
-const STATUSES = ["Applied", "OA", "Interview", "Offer", "Rejected", "Archived"];
-const CYCLES = ["Spring", "Summer", "Fall", "Winter", "6-Month"];
-const NOTES = [
-    "Referred by a senior from school.",
-    "Recruiter said to expect an OA within two weeks.",
-    "Two rounds: one technical, one behavioural.",
-    "Heavy on dynamic programming — revise before the next round.",
-    "Team works on payments infrastructure.",
-    "Asked about my final year project in detail.",
-    "Compensation discussed: above market for the cycle.",
-    "",
-];
-
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-const daysAgo = (n) => new Date(Date.now() - n * 86400000);
-const daysAhead = (n) => new Date(Date.now() + n * 86400000);
-
-const buildInternship = (userId) => {
-    const status = pick(STATUSES);
-    const doc = {
-        user: userId,
-        company: pick(COMPANIES),
-        role: pick(ROLES),
-        status,
-        cycle: pick(CYCLES),
-        appliedAt: daysAgo(randInt(1, 300)),
-        applicationLink: "https://example.com/careers/" + randInt(10000, 99999),
-        notes: pick(NOTES),
-    };
-
-    // Only pending stages carry a reminder, matching how the app uses them.
-    if ((status === "OA" || status === "Interview") && Math.random() < 0.6) {
-        doc.reminder = {
-            type: status,
-            remindAt: daysAhead(randInt(1, 21)),
-            location: status === "Interview" ? pick(["Zoom", "On-site", "Google Meet"]) : "HackerRank",
-        };
-    }
-    return doc;
-};
+// Firebase rate-limits account creation, so keep a lid on parallel requests.
+const CONCURRENCY = 5;
 
 const connect = async () => {
     if (!uri) {
@@ -113,36 +61,74 @@ const connect = async () => {
     console.log(`Connected to "${mongoose.connection.db.databaseName}"`);
 };
 
-const clean = async () => {
-    const users = await User.find({ username: new RegExp("^" + DEMO_PREFIX) }).select("_id");
+// Runs `fn` over `items` with at most CONCURRENCY in flight.
+const mapLimit = async (items, fn) => {
+    const results = [];
+    for (let i = 0; i < items.length; i += CONCURRENCY) {
+        results.push(...(await Promise.all(items.slice(i, i + CONCURRENCY).map(fn))));
+    }
+    return results;
+};
+
+// Deletes the given users' internships, Firebase accounts and profiles.
+const removeUsers = async (users) => {
+    const uids = users.map((u) => u.firebaseUid).filter(Boolean);
+    let firebaseRemoved = 0;
+    // deleteUsers accepts at most 1000 uids per call
+    for (let i = 0; i < uids.length; i += 1000) {
+        const { successCount } = await adminAuth().deleteUsers(uids.slice(i, i + 1000));
+        firebaseRemoved += successCount;
+    }
+
     const ids = users.map((u) => u._id);
     const { deletedCount: internships } = await Internship.deleteMany({ user: { $in: ids } });
     const { deletedCount: removed } = await User.deleteMany({ _id: { $in: ids } });
-    console.log(`Removed ${removed} demo users and ${internships} internships.`);
+    console.log(`Removed ${removed} users (${firebaseRemoved} Firebase accounts) and ${internships} internships.`);
+};
+
+const clean = async () => {
+    const users = await User.find({ username: new RegExp("^" + DEMO_PREFIX) }).select("_id firebaseUid");
+    await removeUsers(users);
+};
+
+// One-off reset for the move to Firebase Auth. Also catches orphaned
+// internships whose owner no longer exists.
+const wipeAll = async () => {
+    if (!has("--yes")) {
+        console.error("--wipe-all deletes every user and internship. Re-run with --yes to confirm.");
+        process.exit(1);
+    }
+    await removeUsers(await User.find().select("_id firebaseUid"));
+    const { deletedCount } = await Internship.deleteMany({});
+    if (deletedCount) console.log(`Removed ${deletedCount} orphaned internships.`);
+};
+
+const createDemoUser = async (username) => {
+    const email = demoEmail(username);
+    let account;
+    try {
+        account = await adminAuth().createUser({ email, password: DEMO_PASSWORD, emailVerified: true });
+    } catch (err) {
+        // Left behind by an interrupted run: reuse it rather than failing.
+        if (err.code !== "auth/email-already-exists") throw err;
+        account = await adminAuth().getUserByEmail(email);
+    }
+    return { firebaseUid: account.uid, email, username };
 };
 
 const seed = async () => {
-    // One hash reused across demo accounts — bcrypt is slow by design and these
-    // all share the same throwaway password anyway.
-    const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+    const usernames = makeUsernames(userCount);
 
-    const usernames = new Set();
-    while (usernames.size < userCount) {
-        const n = usernames.size + 1;
-        usernames.add(`${DEMO_PREFIX}${pick(FIRST_NAMES)}${pick(LAST_INITIALS)}${n}`);
-    }
-
-    const existing = await User.find({ username: { $in: [...usernames] } }).select("username");
+    const existing = await User.find({ username: { $in: usernames } }).select("username");
     const existingNames = new Set(existing.map((u) => u.username));
-    const toCreate = [...usernames].filter((u) => !existingNames.has(u));
+    const toCreate = usernames.filter((u) => !existingNames.has(u));
 
     if (existingNames.size) {
         console.log(`Skipping ${existingNames.size} demo users that already exist.`);
     }
 
-    const users = await User.insertMany(
-        toCreate.map((username) => ({ username, password: passwordHash, refreshTokens: [] }))
-    );
+    const profiles = await mapLimit(toCreate, createDemoUser);
+    const users = await User.insertMany(profiles);
 
     const internships = users.flatMap((u) =>
         Array.from({ length: randInt(3, 12) }, () => buildInternship(u._id))
@@ -151,12 +137,13 @@ const seed = async () => {
 
     console.log(`Created ${users.length} users and ${internships.length} internships.`);
     console.log(`Log in as any of them with the password: ${DEMO_PASSWORD}`);
-    console.log(`Sample usernames: ${users.slice(0, 3).map((u) => u.username).join(", ")}`);
+    console.log(`Sample emails: ${users.slice(0, 3).map((u) => u.email).join(", ")}`);
 };
 
 await connect();
 try {
-    if (has("--clean")) await clean();
+    if (has("--wipe-all")) await wipeAll();
+    else if (has("--clean")) await clean();
     else await seed();
 } catch (err) {
     console.error("Seed failed:", err.message);

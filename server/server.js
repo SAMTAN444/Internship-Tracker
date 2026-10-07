@@ -3,7 +3,6 @@ import cors from "cors"
 import dotenv from "dotenv"
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js"
-import { protect } from "./middleware/authMiddleware.js"
 import internshipRoutes from "./routes/internshipRoutes.js"
 import errorHandler from "./middleware/errorHandler.js"
 
@@ -23,9 +22,6 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/internships", internshipRoutes);
-app.get("/api/me", protect, (req, res) => {
-    res.json(req.user);
-})
 
 
 app.get("/", (req, res) => {

@@ -21,7 +21,7 @@ Trackly was built to serve as a **single source of truth** for internship applic
 
 ## Core Features
 
-- Secure username-based authentication (Register / Login / Logout)
+- Email and password accounts via Firebase Authentication, with email verification and password reset by email
 - User-specific internship tracking (data isolated per account)
 - Create, edit, and delete internship entries
 - Application status management (Applied, Interviewing, Offer, Rejected, Archived)
@@ -38,7 +38,7 @@ Trackly was built to serve as a **single source of truth** for internship applic
 - Clear separation of concerns across frontend, backend, and data layers
 - Modular backend architecture using controllers, routes, middleware, and models
 - RESTful API design with predictable and maintainable endpoints
-- Stateless authentication using JWT for scalability
+- Authentication delegated to Firebase; the API only verifies ID tokens
 - Optimistic UI updates to improve responsiveness
 - Defensive error handling with clear user feedback
 
@@ -53,12 +53,13 @@ The focus of this project was on **maintainability, clarity, and real-world usab
 - Tailwind CSS
 - React Router
 - Axios
+- Firebase Authentication
 
 ### Backend
 - Node.js
 - Express.js
 - MongoDB (Mongoose)
-- JWT Authentication
+- Firebase Admin SDK (ID token verification)
 
 ### DevOps & Tooling
 - Git & GitHub (feature-branch workflow)
@@ -84,12 +85,13 @@ MongoDB Database
 
 ## Authentication & Security
 
-- Username and password authentication (no email required)
-- Passwords are hashed before storage
-- JWT used for secure, stateless authentication
+- Sign-up, login, sessions and password storage are handled by Firebase Authentication; the app never sees or stores passwords
+- New accounts get a verification email; forgotten passwords and password changes are done through an emailed link
+- Every API request carries a short-lived Firebase ID token, verified server-side with the Firebase Admin SDK
+- Each Firebase account is linked to a Trackly profile (username shown in the app) stored in MongoDB
 - Protected routes enforced on both frontend and backend
 - User data strictly scoped to authenticated users
-- Sensitive credentials managed via environment variables
+- Sensitive credentials managed via environment variables (see `client/.env.example` and `server/.env.example`)
 
 ---
 

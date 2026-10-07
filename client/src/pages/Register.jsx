@@ -1,183 +1,189 @@
 import { useState } from "react";
-import API, { setSession } from "../services/api";
-import { useNavigate } from "react-router-dom";
-import { HiExclamationCircle } from "react-icons/hi";
-import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import API from "../services/api";
+import { auth, authErrorMessage, emailActionSettings } from "../services/firebase";
+import { useAuth } from "../context/AuthContext";
+import AuthShell, { TextField, PasswordField, FormError, SubmitButton } from "../components/AuthShell";
 
-export default function Register({ onAuth }) {
+// Mirrors the server's rule in authController.js
+const USERNAME_RULE = /^[A-Za-z0-9_.-]{3,30}$/;
+// Mirrors the Firebase password policy set in the console
+const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+const USERNAME_HINT = "3–30 characters: letters, numbers, dots, dashes or underscores. Shown on your dashboard.";
+const PASSWORD_HINT = "At least 8 characters with upper and lower case letters, a number and a symbol.";
+
+export default function Register() {
+  const { user, profileStatus, refreshProfile, signOut } = useAuth();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmpassword, setconfirmpassword] = useState("");
-  const [error, seterror] = useState("");
-  const [loading, setloading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  // True from creating the Firebase account until the profile exists. During
+  // that gap the user briefly has no profile, which mustn't switch the form.
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
-  const navigate = useNavigate();
+  // Signed in but no profile yet: an earlier sign-up was interrupted after the
+  // Firebase account was created. Only the username is left to pick.
+  const finishingSignup = user && profileStatus === "missing" && !creatingAccount;
+
+  const createProfile = async (name) => {
+    await API.post("/api/auth/profile", { username: name });
+    // Loads the profile; RegisterRoute then redirects to the dashboard.
+    await refreshProfile();
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (password !== confirmpassword) {
-      toast.error("Passwords do not match");
+    const name = username.trim();
+    if (!USERNAME_RULE.test(name)) return setError(USERNAME_HINT);
+
+    setSubmitting(true);
+
+    if (finishingSignup) {
+      try {
+        await createProfile(name);
+      } catch (err) {
+        setError(authErrorMessage(err, "Couldn't save your username. Please try again."));
+        setSubmitting(false);
+      }
       return;
     }
 
-    setloading(true);
-    seterror("");
+    if (!PASSWORD_RULE.test(password)) {
+      setSubmitting(false);
+      return setError(PASSWORD_HINT);
+    }
+    if (password !== confirmPassword) {
+      setSubmitting(false);
+      return setError("Passwords don't match.");
+    }
 
     try {
-      const { data } = await API.post("/api/auth/register", {
-        username,
-        password,
-      });
-      setSession({ token: data.token, refreshToken: data.refreshToken });
-      onAuth?.();
-      navigate("/dashboard", { replace: true });
-      toast.success("Account created");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Registration failed");
-    } finally {
-      setloading(false);
+      // Check first so a taken name doesn't leave a half-created account
+      const { data } = await API.get("/api/auth/username-available", { params: { username: name } });
+      if (!data.available) {
+        setSubmitting(false);
+        return setError("That username is taken. Try another.");
+      }
+
+      setCreatingAccount(true);
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email.trim(), password);
+
+      // Not fatal: the dashboard banner can resend it.
+      sendEmailVerification(newUser, emailActionSettings()).catch(() => {});
+
+      try {
+        await createProfile(name);
+      } catch (err) {
+        // Someone took the name in the last few seconds. Roll back the Firebase
+        // account so the email can be used again.
+        if (err.response?.data?.code === "USERNAME_TAKEN") {
+          await newUser.delete().catch(() => {});
+          setError("That username was just taken. Try another.");
+          setSubmitting(false);
+          setCreatingAccount(false);
+          return;
+        }
+        throw err;
+      }
+    } catch (err) {
+      setError(authErrorMessage(err, "Registration failed. Please try again."));
+      setSubmitting(false);
+      setCreatingAccount(false);
     }
   };
 
-  if (loading) {
+  if (finishingSignup) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-600">Creating your account…</p>
-      </div>
+      <AuthShell
+        title="Choose a username"
+        subtitle={`Your account for ${user.email} is ready. Pick a username to finish setting it up.`}
+        footer={
+          <button
+            type="button"
+            onClick={signOut}
+            className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700"
+          >
+            Use a different account
+          </button>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <TextField
+            label="Username"
+            hint={USERNAME_HINT}
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <FormError>{error}</FormError>
+          <SubmitButton loading={submitting} loadingLabel="Saving…">
+            Continue to dashboard
+          </SubmitButton>
+        </form>
+      </AuthShell>
     );
   }
 
   return (
-    <>
-      <div className="flex items-center min-h-screen bg-white px-4">
-        <div className="container mx-auto max-w-md">
-          <div className="max-w-md mx-auto my-10">
-            <div className="text-center">
-              <h1 className="my-3 text-2xl font-semibold text-gray-900">
-                Register
-              </h1>
-              <p className="text-gray-600">
-                Register to create an account
-              </p>
-            </div>
+    <AuthShell
+      title="Create your account"
+      subtitle="Track every application in one place."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700">
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <TextField
+          label="Username"
+          hint={USERNAME_HINT}
+          autoComplete="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <TextField
+          label="Email"
+          hint="We'll send a link to verify it."
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <PasswordField
+          hint={PASSWORD_HINT}
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <PasswordField
+          label="Confirm password"
+          autoComplete="new-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
 
-            <div className="my-7">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-6">
-                  <label
-                    htmlFor="username"
-                    className="block mb-2 text-sm text-gray-600"
-                  >
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    placeholder="Choose a username"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      seterror("");
-                    }}
-                    className="w-full px-3 py-2 input-dark"
-                    required
-                  />
-                </div>
+        <FormError>{error}</FormError>
 
-                <div className="mb-6">
-                  <label
-                    htmlFor="password"
-                    className="block mb-2 text-sm text-gray-600"
-                  >
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Your Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 input-dark"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2
-                 text-gray-600 text-sm hover:text-gray-900"
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <label
-                    htmlFor="confirmpassword"
-                    className="block mb-2 text-sm text-gray-600"
-                  >
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="confirmpassword"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Confirm Password"
-                      value={confirmpassword}
-                      onChange={(e) => setconfirmpassword(e.target.value)}
-                      className="w-full px-3 py-2 input-dark"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2
-                 text-gray-600 text-sm hover:text-gray-900"
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </div>
-
-                {error && (
-                  <div
-                    className="flex items-start gap-2 mb-4 p-3 text-sm
-                                  text-red-700
-                                  bg-red-50
-                                  rounded-md"
-                  >
-                    <HiExclamationCircle className="w-5 h-5" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <button
-                    type="submit"
-                    className="w-full px-3 py-4 text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none"
-                  >
-                    Register
-                  </button>
-                </div>
-
-                <p className="text-sm text-center text-gray-600">
-                  Already have an account?{" "}
-                  <a
-                    href="/login"
-                    className="text-gray-900 underline hover:text-gray-700"
-                  >
-                    Log In
-                  </a>
-                </p>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+        <SubmitButton loading={submitting} loadingLabel="Creating account…">
+          Create account
+        </SubmitButton>
+      </form>
+    </AuthShell>
   );
 }

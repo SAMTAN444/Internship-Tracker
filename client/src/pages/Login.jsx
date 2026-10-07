@@ -1,147 +1,93 @@
 import { useState } from "react";
-import API, { setSession } from "../services/api";
-import { useNavigate } from "react-router-dom";
-import { HiExclamationCircle } from "react-icons/hi";
-import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, authErrorMessage } from "../services/firebase";
+import { useAuth } from "../context/AuthContext";
+import AuthShell, { TextField, PasswordField, FormError, SubmitButton } from "../components/AuthShell";
 
-export default function Login({ onAuth }) {
-  const [username, setUsername] = useState("");
+export default function Login() {
+  const { user, profileStatus, profileError, refreshProfile } = useAuth();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError("");
     try {
-      const { data } = await API.post("/api/auth/login", {
-        username,
-        password,
-      });
-      setSession({ token: data.token, refreshToken: data.refreshToken });
-      onAuth?.();
-      navigate("/dashboard", { replace: true });
-      toast.success("Successfully Logged In");
+      // On success AuthContext loads the profile and PublicRoute redirects.
+      await signInWithEmailAndPassword(auth, email.trim(), password);
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Login failed. Please try again.";
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setLoading(false);
+      setError(authErrorMessage(err, "Login failed. Please try again."));
+      setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-600">Loading dashboard…</p>
-      </div>
-    );
-  }
+  // Signed in, but the API couldn't load the profile (e.g. Render waking up).
+  const serverDown = user && profileStatus === "error";
+  const busy = submitting && !serverDown && !error;
+
   return (
-    <>
-      <div className="flex items-center min-h-screen bg-white px-3 md:px-4">
-        <div className="container mx-auto max-w-md">
-          <div className="max-w-md mx-auto my-10">
-            <div className="text-center">
-              <h1 className="my-3 text-2xl md:text-3xl font-semibold text-gray-900">
-                Log In
-              </h1>
-              <p className="text-gray-600">
-                Log In to access to your account
-              </p>
-            </div>
+    <AuthShell
+      title="Log in"
+      subtitle="Pick up where you left off."
+      footer={
+        <>
+          New to Trackly?{" "}
+          <Link to="/register" className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <TextField
+          label="Email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-            <div className="my-7">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-6">
-                  <label
-                    htmlFor="username"
-                    className="block mb-2 text-sm text-gray-600"
-                  >
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    placeholder="Your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="input-dark w-full px-3 py-2"
-                  ></input>
-                </div>
-
-                <div className="mb-6">
-                  <label
-                    htmlFor="password"
-                    className="block mb-2 text-sm text-gray-600"
-                  >
-                    Password
-                  </label>
-
-                  <div className="relative">
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Your Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 input-dark"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2
-                 text-gray-600 text-sm hover:text-gray-900"
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </div>
-
-                {error && (
-                  <div
-                    className="flex items-start gap-2 mb-4 p-3 text-sm
-                  text-red-700
-                  bg-red-50
-                  rounded-md"
-                  >
-                    <HiExclamationCircle className="w-5 h-5" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <button
-                    type="submit"
-                    className="w-full px-3 py-4 text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none"
-                  >
-                    Log In
-                  </button>
-                </div>
-
-                <p className="text-sm text-center text-gray-600">
-                  Don&apos;t have an account yet?{" "}
-                  <a
-                    href="/register"
-                    className="text-gray-900 underline hover:text-gray-700"
-                  >
-                    Sign up
-                  </a>
-                </p>
-              </form>
-            </div>
+        <div>
+          <PasswordField
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <div className="mt-2 text-right">
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-gray-900 underline underline-offset-2 hover:text-gray-700"
+            >
+              Forgot password?
+            </Link>
           </div>
         </div>
-      </div>
-    </>
+
+        <FormError>{error}</FormError>
+
+        {serverDown && (
+          <div role="alert" className="space-y-3 p-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-lg">
+            <p>{profileError}</p>
+            <button
+              type="button"
+              onClick={refreshProfile}
+              className="min-h-10 px-4 text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        <SubmitButton loading={busy} loadingLabel="Logging in…">
+          Log in
+        </SubmitButton>
+      </form>
+    </AuthShell>
   );
 }

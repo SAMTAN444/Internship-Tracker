@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import API, { endSession } from "../services/api";
+import { Link } from "react-router-dom";
+import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import VerifyEmailBanner from "../components/VerifyEmailBanner";
 import InternTable from "../components/InternTable";
 import Form from "../components/Form";
 import EditInternshipModal from "../components/EditInternshipModal";
@@ -14,11 +16,10 @@ import ReminderModal from "../components/ReminderModal";
 import "../confirm-dark.css";
 import gogginsImage from "../assets/goggins.png";
 
-export default function Dashboard({ onLogout }) {
+export default function Dashboard() {
+  const { profile, signOut } = useAuth();
   const [internships, setInternships] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
   const [selectedIds, setSelectedIds] = useState([]);
   const [statusToUpdate, setStatusToUpdate] = useState("Applied");
   const [page, setPage] = useState(1);
@@ -28,12 +29,10 @@ export default function Dashboard({ onLogout }) {
   const [searchField, setSearchField] = useState("");
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [loading, setLoading] = useState(true);
   const [reminderTarget, setReminderTarget] = useState(null);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
   const [scope, setScope] = useState("active");
-  const [bootError, setBootError] = useState(null);
 
   const listParams = {
     page,
@@ -46,11 +45,9 @@ export default function Dashboard({ onLogout }) {
   };
 
   const handleLogout = async () => {
-    await endSession();
-    delete API.defaults.headers.common.Authorization;
-    toast.success("Successfully Logged Out");
-    onLogout?.();
-    navigate("/", { replace: true });
+    // ProtectedRoute sends the signed-out user to /login
+    await signOut();
+    toast.success("Logged out");
   };
 
   const addInternship = async (formData) => {
@@ -229,43 +226,12 @@ export default function Dashboard({ onLogout }) {
     }
   };
 
-  const init = async () => {
-    setLoading(true);
-    setBootError(null);
-    try {
-      const res = await API.get("/api/auth/me");
-      setUser(res.data);
-      await fetchUpcomingReminders();
-    } catch (err) {
-      if (err.response?.status === 401) {
-        // The interceptor already tried to refresh and failed, so the session
-        // is genuinely dead and the token is gone. onLogout drops App's token
-        // state too — without it the /login route bounces straight back here.
-        onLogout?.();
-        navigate("/", { replace: true });
-        return;
-      }
-      // Network error or a cold-starting API. The session is probably fine, so
-      // offer a retry instead of rendering a signed-in shell with no user.
-      setBootError(
-        err.response
-          ? "Couldn't load your account. Please try again."
-          : "Can't reach the server. It may be waking up — this can take up to a minute."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ProtectedRoute only renders this page once the profile has loaded.
   useEffect(() => {
-    init();
+    fetchUpcomingReminders();
   }, []);
 
   useEffect(() => {
-    // Don't fetch until the session is confirmed, otherwise this races the
-    // /me call and fires a second doomed request on an expired token.
-    if (!user) return;
-
     API.get("/api/internships", {
       params: {
         page,
@@ -287,39 +253,7 @@ export default function Dashboard({ onLogout }) {
           toast.error("Failed to load internships");
         }
       });
-  }, [user, page, limit, searchquery, searchField, sortField, sortOrder, scope]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-600">Loading dashboard…</p>
-      </div>
-    );
-  }
-
-  if (bootError) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 text-center">
-        <img src={logo} alt="" className="h-10 w-auto mb-6" />
-        <p className="max-w-sm text-sm text-gray-600">{bootError}</p>
-        <div className="mt-6 flex items-center gap-3">
-          <button
-            onClick={init}
-            className="px-4 py-2 text-sm text-white bg-gray-900 rounded-md hover:bg-gray-800"
-          >
-            Try again
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm text-gray-700 rounded-md border border-gray-200 hover:bg-gray-50"
-          >
-            Log out
-          </button>
-        </div>
-      </div>
-    );
-  }
+  }, [page, limit, searchquery, searchField, sortField, sortOrder, scope]);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 flex flex-col">
@@ -344,7 +278,7 @@ export default function Dashboard({ onLogout }) {
           <h1 className="text-lg md:text-2xl font-normal">
             Hello,{" "}
             <span className="font-medium text-gray-900">
-              {user?.username || "User"}
+              {profile.username}
             </span>
           </h1>
 
@@ -357,16 +291,26 @@ export default function Dashboard({ onLogout }) {
               </span>
             </div>
 
-            <button
-              disabled={actionLoading}
-              className="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg bg-red-700 text-white transition hover:bg-red-600"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/settings"
+                className="inline-flex items-center min-h-11 px-4 text-sm font-semibold rounded-lg text-gray-900 hover:bg-gray-100"
+              >
+                Settings
+              </Link>
+              <button
+                disabled={actionLoading}
+                className="min-h-11 px-4 text-sm font-semibold rounded-lg text-gray-900 bg-white border border-gray-300 transition hover:bg-gray-100 disabled:opacity-60"
+                onClick={handleLogout}
+              >
+                Log out
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      <VerifyEmailBanner />
 
       {editing && (
         <EditInternshipModal

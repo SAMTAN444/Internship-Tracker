@@ -1,77 +1,70 @@
-import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import Settings from "./pages/Settings";
 import NotesPage from "./pages/NotesPage";
 import LandingPage from "./pages/LandingPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { AUTH_CHANGED, getAccessToken } from "./services/api";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { LoadingScreen, ErrorScreen } from "./components/StatusScreen";
 
-function ProtectedRoute({ token, children }) {
-  if (!token) return <Navigate to="/" replace />;
+// Signed in with a Trackly profile. Anything less is sent where it can be fixed.
+function ProtectedRoute({ children }) {
+  const { initializing, user, profileStatus, profileError, refreshProfile, signOut } = useAuth();
+
+  if (initializing) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (profileStatus === "missing") return <Navigate to="/register" replace />;
+  if (profileStatus === "error") {
+    return <ErrorScreen message={profileError} onRetry={refreshProfile} onLogout={signOut} />;
+  }
+  if (profileStatus !== "ready") return <LoadingScreen label="Loading your account…" />;
   return children;
 }
 
+// Login, landing and password reset: bounce signed-in users to where they belong.
+// While a fresh sign-in is still loading its profile, keep showing the page.
+function PublicRoute({ children }) {
+  const { initializing, user, profileStatus } = useAuth();
+
+  if (initializing) return <LoadingScreen />;
+  if (user && profileStatus === "ready") return <Navigate to="/dashboard" replace />;
+  if (user && profileStatus === "missing") return <Navigate to="/register" replace />;
+  return children;
+}
+
+// Register also serves signed-in users who still need to pick a username.
+function RegisterRoute() {
+  const { initializing, user, profileStatus } = useAuth();
+
+  if (initializing) return <LoadingScreen />;
+  if (user && profileStatus === "ready") return <Navigate to="/dashboard" replace />;
+  return <Register />;
+}
+
 function App() {
-  const [token, setToken] = useState(getAccessToken);
-
-  // Keep App in sync when the token changes (login, logout, refresh, or the
-  // interceptor clearing a dead session).
-  useEffect(() => {
-    const syncToken = () => setToken(getAccessToken());
-
-    // AUTH_CHANGED covers this tab; `storage` covers the others.
-    window.addEventListener(AUTH_CHANGED, syncToken);
-    window.addEventListener("storage", syncToken);
-
-    // Re-check on mount in case the session changed before the listener attached.
-    syncToken();
-
-    return () => {
-      window.removeEventListener(AUTH_CHANGED, syncToken);
-      window.removeEventListener("storage", syncToken);
-    };
-  }, []);
-
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={token ? <Navigate to="/dashboard" replace /> : <LandingPage />}
-        />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<RegisterRoute />} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
 
-        <Route
-          path="/login"
-          element={token ? <Navigate to="/dashboard" replace /> : <Login onAuth={() => setToken(getAccessToken())} />}
-        />
-        <Route
-          path="/register"
-          element={token ? <Navigate to="/dashboard" replace /> : <Register onAuth={() => setToken(getAccessToken())} />}
-        />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/notes/:id" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute token={token}>
-              <Dashboard onLogout={() => setToken(null)} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notes/:id"
-          element={
-            <ProtectedRoute token={token}>
-              <NotesPage />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
 
-      <ToastContainer position="top-right" autoClose={3000} pauseOnHover theme="light" />
-    </BrowserRouter>
+        <ToastContainer position="top-right" autoClose={3000} pauseOnHover theme="light" />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
