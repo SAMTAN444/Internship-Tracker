@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Plus, X } from "lucide-react";
+import { btnPrimary, btnSecondary, btnGhost, cardTitle } from "./ui";
 import FilterDropdown from "./FilterOptions";
 import StatusDropdown from "./StatusDropdown";
 
@@ -15,6 +17,8 @@ export default function InternToolbar({
   statusToUpdate,
   setStatusToUpdate,
   onBulkUpdate,
+  addOpen,
+  onToggleAdd,
 }) {
   const { searchquery, searchField, sortField, scope } = query;
 
@@ -48,38 +52,40 @@ export default function InternToolbar({
     setPage(1);
   };
 
-  const tabClass = (active) => `
-      flex-1 h-10 rounded-lg text-sm font-semibold
-      border border-gray-200
-      ${active ? "bg-[#CBFF9E] text-gray-900" : "bg-gray-50 text-gray-700 hover:bg-gray-100"}
-    `;
-
-  const updateClass = `
-          rounded-lg text-sm font-semibold transition
-          ${
-            selectedCount === 0
-              ? "bg-gray-100 text-gray-800 hover:bg-gray-200/70 disabled:opacity-40 disabled:cursor-not-allowed"
-              : "bg-gray-900 text-white hover:bg-gray-800"
-          }
-        `;
+  const tabClass = (active) =>
+    `min-h-9 px-4 rounded-md text-sm font-medium transition-colors ${
+      active ? "bg-brand-soft text-fg" : "text-fg-muted hover:text-fg"
+    }`;
 
   return (
-    <div className="px-6 py-6 border-b border-gray-200 bg-gray-50">
-      {/* Row 1 - Title */}
-      <div>
-        <h2 className="text-2xl md:text-3xl font-semibold tracking-wide">Internships</h2>
-        <p className="text-sm md:text-base text-gray-600">Track and manage your applications</p>
+    <div className="p-5 md:p-6 border-b border-line">
+      {/* Title + Add */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className={cardTitle}>Applications</h2>
+          <p className="text-sm text-fg-muted">Track and manage your applications</p>
+        </div>
+        <button
+          type="button"
+          onClick={onToggleAdd}
+          aria-expanded={addOpen}
+          aria-controls="add-application-form"
+          className={addOpen ? btnSecondary : btnPrimary}
+        >
+          {addOpen ? <X aria-hidden="true" className="w-4 h-4" /> : <Plus aria-hidden="true" className="w-4 h-4" />}
+          {addOpen ? "Close form" : "Add application"}
+        </button>
       </div>
 
-      {/* Tabs (above search) */}
-      <div className="mt-4 flex items-center gap-2">
+      {/* Active / Archived */}
+      <div role="group" aria-label="Which applications" className="mt-4 inline-flex gap-0.5 p-0.5 border border-line rounded-lg">
         <button
           type="button"
           onClick={() => onScopeChange("active")}
           aria-pressed={scope === "active"}
           className={tabClass(scope === "active")}
         >
-          Active Apps
+          Active
         </button>
         <button
           type="button"
@@ -87,103 +93,42 @@ export default function InternToolbar({
           aria-pressed={scope === "archived"}
           className={tabClass(scope === "archived")}
         >
-          Archived Apps
+          Archived
         </button>
       </div>
 
-      {/* Search + Filter + Status + Update */}
-      <div className="mt-6 space-y-4">
+      {/* Search, filter, bulk status */}
+      <div className="mt-4 space-y-3">
         <input
           type="text"
           placeholder="Search applications"
           aria-label="Search applications"
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
-          className="input-dark w-full"
+          className="field"
         />
 
-        {/* ===== MOBILE (<= md) ===== */}
-        <div className="grid gap-3 md:hidden">
-          {/* Row 1: Filter + Reset */}
-          <div className="grid grid-cols-[1fr_96px] gap-3 items-center">
-            <div className="w-full min-w-0">
-              <FilterDropdown value={searchField} setValue={changeField} />
-            </div>
-            <button
-              disabled={!canReset}
-              onClick={reset}
-              className="
-          h-10 w-24
-          rounded-lg text-sm font-semibold
-          bg-gray-100 text-gray-800
-          hover:bg-gray-200/70
-          disabled:opacity-40 disabled:cursor-not-allowed
-        "
-            >
-              Reset
-            </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-40 min-w-0 grow md:grow-0">
+            <FilterDropdown value={searchField} setValue={changeField} />
           </div>
+          <button disabled={!canReset} onClick={reset} className={btnGhost}>
+            Reset
+          </button>
 
-          {/* Row 2: Status (same width as Filter) + Update */}
-          <div className="grid grid-cols-[1fr_96px] gap-3 items-center">
-            <div className="w-full min-w-0">
-              <StatusDropdown value={statusToUpdate} setValue={setStatusToUpdate} scope={scope} />
-            </div>
-            <button disabled={selectedCount === 0} onClick={onBulkUpdate} className={`h-10 w-24 ${updateClass}`}>
-              Update
-            </button>
-          </div>
+          <div className="hidden md:block flex-1" />
 
-          {/* Row 3: selected count on RIGHT (below Update row) */}
-          <div className="grid grid-cols-[1fr_96px]">
-            <div />
-            <span className="text-sm text-gray-700 text-right">{selectedCount} selected</span>
+          <div className="w-40 min-w-0 grow md:grow-0">
+            <StatusDropdown value={statusToUpdate} setValue={setStatusToUpdate} scope={scope} />
           </div>
+          <button disabled={selectedCount === 0} onClick={onBulkUpdate} className={btnPrimary}>
+            Update status
+          </button>
         </div>
 
-        {/* ===== DESKTOP (>= md) ===== */}
-        <div className="hidden md:block">
-          <div className="flex items-center gap-2">
-            {/* Left: Filter + Reset */}
-            <div className="flex items-center gap-2">
-              <div className="w-47.5">
-                <FilterDropdown value={searchField} setValue={changeField} />
-              </div>
-              <button
-                disabled={!canReset}
-                onClick={reset}
-                className="
-          h-10 px-3 rounded-lg text-sm font-semibold
-          bg-gray-200 text-gray-900
-          hover:bg-gray-200/70
-          disabled:opacity-40 disabled:cursor-not-allowed
-        "
-              >
-                Reset
-              </button>
-            </div>
-
-            <div className="flex-1" />
-
-            {/* Right: status + Update status */}
-            <div className="flex items-center gap-2">
-              <div className="w-42.5">
-                <StatusDropdown value={statusToUpdate} setValue={setStatusToUpdate} scope={scope} />
-              </div>
-              <button
-                disabled={selectedCount === 0}
-                onClick={onBulkUpdate}
-                className={`h-10 px-3 whitespace-nowrap ${updateClass}`}
-              >
-                Update status
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-2 flex justify-end">
-            <span className="text-sm text-gray-700">{selectedCount} selected</span>
-          </div>
-        </div>
+        <p className="text-sm text-fg-muted text-right" aria-live="polite">
+          {selectedCount} selected
+        </p>
       </div>
     </div>
   );

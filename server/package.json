@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "node --watch server.js",
     "start": "node server.js",
     "seed": "node scripts/seed.js",
     "seed:clean": "node scripts/seed.js --clean"
@@ -13,6 +13,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -21,7 +24,7 @@
     "mongodb": "^7.0.0",
     "mongoose": "^9.0.1"
   },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

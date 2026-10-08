@@ -108,7 +108,7 @@ export default function Register() {
           <button
             type="button"
             onClick={signOut}
-            className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700"
+            className="font-semibold text-fg underline underline-offset-2 hover:text-fg-muted"
           >
             Use a different account
           </button>
@@ -139,7 +139,7 @@ export default function Register() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700">
+          <Link to="/login" className="font-semibold text-fg underline underline-offset-2 hover:text-fg-muted">
             Log in
           </Link>
         </>

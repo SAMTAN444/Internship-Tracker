@@ -141,3 +141,28 @@ export const updateBulkStatus = async (req, res) => {
 
     res.json({ message: "Status updated successfully" });
 };
+
+// @route GET /api/internships/stats
+// Pipeline counts for the dashboard. Active applications only, so archiving
+// last season resets the picture.
+export const getStats = async (req, res) => {
+    const groups = await Internship.aggregate([
+        { $match: { user: req.user._id, status: { $ne: "Archived" } } },
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]);
+
+    const byStatus = Object.fromEntries(
+        STATUSES.filter((s) => s !== "Archived").map((s) => [s, 0])
+    );
+    for (const { _id, count } of groups) byStatus[_id] = count;
+
+    const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
+
+    res.json({
+        total,
+        byStatus,
+        // Anything past "Applied" means the company responded
+        heardBack: total - byStatus.Applied,
+        offers: byStatus.Offer,
+    });
+};

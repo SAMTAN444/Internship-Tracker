@@ -22,7 +22,7 @@ Calm, reliable, professional, understated. Three words: **trustworthy, clear, co
 
 The voice is clear and supportive — direct without being loud, encouraging without cheerleading. Trackly should feel like a quiet, dependable tool that reduces the anxiety of recruiting season, not one that adds noise to it. Copy is plain and human; it states what's happening and what to do next. The emotional goal is **relief and control**: the user should feel organized and in command of their search.
 
-(Note: the David Goggins image on the dashboard is a personal easter egg, not a brand signal — the product voice is not "gritty/motivational.")
+(The product voice is not "gritty/motivational.")
 
 ## Anti-references
 
@@ -40,4 +40,4 @@ The voice is clear and supportive — direct without being loud, encouraging wit
 
 ## Accessibility & Inclusion
 
-Target **WCAG AAA / strict.** Concretely: AAA contrast ratios (7:1 for normal text, 4.5:1 for large) — demanding given the dark theme, so text and accent colors must be verified, not assumed. Full keyboard navigability with visible focus states on every interactive element. Comprehensive screen-reader support (semantic markup, labeled controls, status announcements). Honor `prefers-reduced-motion` for the fade/float animations. Ensure status is never communicated by color alone (the Applied/OA/Interview/Offer/Rejected/Archived states need text or iconography alongside color) to support color-blind users.
+Target **WCAG AAA / strict.** Concretely: AAA contrast ratios (7:1 for normal text, 4.5:1 for large) — in both the light and dark themes, so text and accent colors must be verified, not assumed. Full keyboard navigability with visible focus states on every interactive element. Comprehensive screen-reader support (semantic markup, labeled controls, status announcements). Honor `prefers-reduced-motion` for all motion. Ensure status is never communicated by color alone (the Applied/OA/Interview/Offer/Rejected/Archived states need text or iconography alongside color) to support color-blind users.

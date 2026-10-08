@@ -10,7 +10,11 @@ const LIMIT = 10;
 export default function useInternships() {
   const [internships, setInternships] = useState([]);
   const [total, setTotal] = useState(0);
+  // False until the first page arrives, so empty states don't flash on load
+  const [loaded, setLoaded] = useState(false);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
+  // Pipeline counts for active applications; null until loaded
+  const [stats, setStats] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const [page, setPage] = useState(1);
@@ -38,9 +42,18 @@ export default function useInternships() {
     }
   }, []);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      setStats(await internshipsApi.getStats());
+    } catch {
+      // Non-critical: the pipeline card keeps its last numbers
+    }
+  }, []);
+
   useEffect(() => {
     fetchUpcomingReminders();
-  }, [fetchUpcomingReminders]);
+    fetchStats();
+  }, [fetchUpcomingReminders, fetchStats]);
 
   useEffect(() => {
     // Drop responses for a query the user has already moved past
@@ -51,6 +64,7 @@ export default function useInternships() {
         if (stale) return;
         setInternships(data.data);
         setTotal(data.total);
+        setLoaded(true);
       })
       .catch((err) => {
         console.error(err);
@@ -89,6 +103,7 @@ export default function useInternships() {
         notes: formData.notes,
       });
       toast.success("Internship added");
+      fetchStats();
       await fetchList({ page: 1 });
       setPage(1);
       return true;
@@ -98,6 +113,7 @@ export default function useInternships() {
     run("Failed to delete internship", async () => {
       await internshipsApi.deleteInternship(id);
       toast.success("Internship deleted");
+      fetchStats();
 
       const data = await internshipsApi.listInternships(params);
       // Deleted the last row on this page: step back instead of showing an empty page
@@ -139,6 +155,7 @@ export default function useInternships() {
     return run("Failed to update internships", async () => {
       await internshipsApi.bulkUpdateStatus(ids, status);
       toast.success("Successfully updated internships");
+      fetchStats();
 
       // Follow the items: archiving goes to the archived tab, unarchiving back to active
       const nextScope =
@@ -152,12 +169,17 @@ export default function useInternships() {
   };
 
   // After an edit made elsewhere (e.g. the edit modal) has already been saved
-  const refresh = () => fetchList().catch(() => toast.error("Failed to load internships"));
+  const refresh = () => {
+    fetchStats();
+    return fetchList().catch(() => toast.error("Failed to load internships"));
+  };
 
   return {
     internships,
     total,
+    loaded,
     upcomingReminders,
+    stats,
     actionLoading,
     query: { page, limit: LIMIT, searchquery, searchField, sortField, sortOrder, scope },
     setPage,

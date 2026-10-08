@@ -5,7 +5,7 @@ import { auth, authErrorMessage, emailActionSettings } from "../services/firebas
 import { useAuth } from "../context/AuthContext";
 
 const buttonClass =
-  "min-h-10 px-4 text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait";
+  "min-h-10 px-4 text-sm font-semibold text-fg bg-surface border border-line-strong rounded-lg hover:bg-surface-2 disabled:opacity-60 disabled:cursor-wait";
 
 // Nudge (not a blocker) until the user clicks the link in their verification email.
 export default function VerifyEmailBanner() {
@@ -52,14 +52,14 @@ export default function VerifyEmailBanner() {
   };
 
   return (
-    <div role="region" aria-label="Email verification" className="border-b border-gray-200 bg-gray-50">
+    <div role="region" aria-label="Email verification" className="border-b border-line bg-surface-2">
       <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row md:items-center gap-3 px-4 py-3 md:px-6">
-        <div className="flex items-start gap-3 flex-1 text-sm text-gray-900">
+        <div className="flex items-start gap-3 flex-1 text-sm text-fg">
           <HiOutlineMail aria-hidden="true" className="w-5 h-5 shrink-0 mt-0.5" />
           <p>
             Verify your email: we sent a link to <span className="font-semibold break-all">{user.email}</span>.
             {message && (
-              <span role="status" className="block mt-1 text-gray-700">
+              <span role="status" className="block mt-1 text-fg-muted">
                 {message}
               </span>
             )}

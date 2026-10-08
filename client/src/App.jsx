@@ -1,14 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import Settings from "./pages/Settings";
-import NotesPage from "./pages/NotesPage";
+import { lazy, Suspense } from "react";
 import LandingPage from "./pages/LandingPage";
+
+// Everything past the landing page is split into its own chunk, so first-time
+// visitors don't download the dashboard, Markdown renderer or date picker.
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const NotesPage = lazy(() => import("./pages/NotesPage"));
+const Settings = lazy(() => import("./pages/Settings"));
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { LoadingScreen, ErrorScreen } from "./components/StatusScreen";
 
 // Signed in with a Trackly profile. Anything less is sent where it can be fixed.
@@ -45,10 +50,18 @@ function RegisterRoute() {
   return <Register />;
 }
 
+// Toasts follow the active theme
+function Toasts() {
+  const { theme } = useTheme();
+  return <ToastContainer position="top-right" autoClose={3000} pauseOnHover theme={theme} />;
+}
+
 function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <BrowserRouter>
+        <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
@@ -61,10 +74,12 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
 
-        <ToastContainer position="top-right" autoClose={3000} pauseOnHover theme="light" />
+        <Toasts />
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -11,39 +11,35 @@ export default function InternCard({
   onOpenReminder,
 }) {
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+    <div className="py-4">
       {/* Top row */}
       <div className="flex justify-between items-start gap-3">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold text-gray-900 truncate">
+          <h3 className="text-base font-medium text-fg truncate">
             <input
               type="checkbox"
               checked={selected}
               onChange={onToggleSelect}
               aria-label={`Select ${intern.company} application`}
-              className="mt-1 mr-2 w-4 h-4 rounded bg-gray-50 accent-gray-900"
+              className="mt-1 mr-2 w-4 h-4 accent-brand"
             />
 
             {intern.company}
           </h3>
-          <p className="text-sm text-gray-600 truncate">{intern.role}</p>
+          <p className="text-sm text-fg-muted truncate">{intern.role}</p>
         </div>
 
         <span
-          className={`shrink-0 text-xs px-2.5 py-1 rounded-full font-medium
-    ${STATUS_STYLES[intern.status] || "bg-gray-100 text-gray-800"}
-  `}
+          className={`shrink-0 ${STATUS_STYLES[intern.status] || "chip chip-applied"}`}
         >
           {intern.status}
         </span>
       </div>
 
       {/* Meta */}
-      <div className="mt-3 flex justify-between text-xs text-gray-600">
+      <div className="mt-3 flex justify-between text-xs text-fg-muted">
         <span
-          className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-medium
-    ${CYCLE_STYLES[intern.cycle] || "bg-gray-100 text-gray-700"}
-  `}
+          className={CYCLE_STYLES[intern.cycle] || "chip chip-cycle"}
         >
           {intern.cycle}
         </span>
@@ -57,9 +53,9 @@ export default function InternCard({
           onClick={onOpenNotes}
           aria-label={`Open notes for ${intern.company}`}
           title="Notes"
-          className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-gray-100"
+          className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-surface-2"
         >
-          <FileText className="w-4 h-4 text-gray-700" />
+          <FileText className="w-4 h-4 text-fg-muted" />
         </button>
 
         {/* Reminder (OA / Interview only) */}
@@ -68,11 +64,11 @@ export default function InternCard({
             onClick={onOpenReminder}
             aria-label={intern.reminder ? "Edit reminder" : "Set reminder"}
             title={intern.reminder ? "Edit reminder" : "Set reminder"}
-            className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-gray-100"
+            className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-surface-2"
           >
             <Bell
               className={`w-4 h-4 ${
-                intern.reminder ? "text-amber-600" : "text-gray-600"
+                intern.reminder ? "text-fg fill-current" : "text-fg-muted"
               }`}
             />
           </button>
@@ -82,18 +78,18 @@ export default function InternCard({
           onClick={onEdit}
           aria-label={`Edit ${intern.company} application`}
           title="Edit"
-          className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-gray-100"
+          className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-surface-2"
         >
-          <Pencil className="w-4 h-4 text-gray-700" />
+          <Pencil className="w-4 h-4 text-fg-muted" />
         </button>
 
         <button
           onClick={onDelete}
           aria-label={`Delete ${intern.company} application`}
           title="Delete"
-          className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-gray-100"
+          className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-surface-2"
         >
-          <Trash2 className="w-4 h-4 text-red-600" />
+          <Trash2 className="w-4 h-4 text-danger" />
         </button>
       </div>
     </div>

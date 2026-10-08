@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { CYCLE_ICON_STYLES } from "./statusStyles";
 import { X, CalendarClock, Leaf, Sun, Wind, Snowflake } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { updateInternship } from "../services/internships";
 import "react-day-picker/dist/style.css";
 import { toast } from "react-toastify";
+import { btnIcon, btnPrimary, btnSecondary } from "./ui";
 
 export default function EditInternshipModal({ intern, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -39,21 +41,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
     },
   ];
 
-  const cycleIconStyles = {
-    Spring: "text-green-700",
-    Summer: "text-amber-700",
-    Fall: "text-orange-700",
-    Winter: "text-blue-700",
-    "6-Month": "text-purple-300",
-  };
 
-  const cycleStyles = {
-    Spring: "bg-green-100 text-green-800",
-    Summer: "bg-amber-100 text-amber-800",
-    Fall: "bg-orange-100 text-orange-800",
-    Winter: "bg-blue-100 text-blue-800",
-    "6-Month": "text-purple-700",
-  };
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -73,7 +61,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [onClose]);
 
   const handleSubmit = async () => {
     try {
@@ -85,45 +73,46 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
         applicationLink: form.link,
         notes: form.notes,
       });
-      toast.success("Internship Updated");
+      toast.success("Internship updated");
       onSave(data);
     } catch (err) {
       console.error(err);
-      toast.error("Faield to Update Internship");
+      toast.error("Failed to update internship");
     }
   };
 
   return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center bg-black-60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
         ref={modalRef}
-        className="w-full max-w-2xl bg-white border border-gray-200 rounded-2xl shadow-2xl p-8 relative"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-application-title"
+        className="w-full max-w-2xl max-h-[90vh] overflow-auto bg-surface border border-line rounded-xl shadow-2xl p-5 md:p-6 relative"
       >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
+          aria-label="Close"
+          className={`absolute top-3 right-3 ${btnIcon}`}
         >
-          <X />
+          <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Edit Application
+        <div className="mb-5 pr-12">
+          <h2 id="edit-application-title" className="text-xl font-semibold text-fg">
+            Edit application
           </h2>
-          <p className="text-gray-600 text-sm">
-            Update your application details below
-          </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Company */}
           <Field label="Company Name">
             <input
               value={form.company}
               onChange={(e) => setForm({ ...form, company: e.target.value })}
-              className="input-dark"
+              className="field"
             />
           </Field>
 
@@ -132,7 +121,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
             <input
               value={form.role}
               onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="input-dark"
+              className="field"
             />
           </Field>
 
@@ -141,7 +130,7 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
             <input
               value={form.link}
               onChange={(e) => setForm({ ...form, link: e.target.value })}
-              className="input-dark"
+              className="field"
             />
           </Field>
 
@@ -155,37 +144,36 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
                   setCycleOpen(!cycleOpen);
                   setDateOpen(false);
                 }}
-                className="input-dark flex items-center justify-between"
+                className="field flex items-center justify-between"
               >
                 {form.cycle ? (
                   (() => {
                     const selected = CYCLES.find((c) => c.value === form.cycle);
                     const Icon = selected.icon;
-                    const cycleStyle = cycleStyles[form.cycle];
-                    const iconStyle = cycleIconStyles[form.cycle];
+                    const iconStyle = CYCLE_ICON_STYLES[form.cycle];
 
                     return (
                       <span
-                        className={`flex items-center gap-2 px-3 py-1 rounded-md ${cycleStyle}`}
+                        className="flex items-center gap-2 text-fg"
                       >
-                        <Icon className={`w-5 h-5 ${iconStyle}`} />
-                        <span className="text-sm font-medium">
+                        <Icon aria-hidden="true" className={`w-4 h-4 ${iconStyle}`} />
+                        <span>
                           {selected.label}
                         </span>
                       </span>
                     );
                   })()
                 ) : (
-                  <span className="text-gray-600">
+                  <span className="text-fg-muted">
                     Choose internship period
                   </span>
                 )}
 
-                <span className="text-gray-600 text-xl">▾</span>
+                <span aria-hidden="true" className="text-fg-muted text-sm">▾</span>
               </button>
 
               {cycleOpen && (
-                <div className="absolute mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl z-50">
+                <div className="absolute mt-1 w-full py-1 bg-surface border border-line rounded-lg shadow-lg z-50">
                   {CYCLES.map((c) => (
                     <button
                       key={c.value}
@@ -194,16 +182,16 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
                         setForm({ ...form, cycle: c.value });
                         setCycleOpen(false);
                       }}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3"
+                      className="w-full px-3 py-2 text-left hover:bg-surface-2 flex items-center gap-3"
                     >
                       <c.icon
-                        className={`w-5 h-5 ${cycleIconStyles[c.value]}`}
+                        className={`w-4 h-4 ${CYCLE_ICON_STYLES[c.value]}`}
                       />
                       <div>
-                        <div className="text-gray-900 font-medium">
+                        <div className="text-sm text-fg font-medium">
                           {c.label}
                         </div>
-                        <div className="text-xs text-gray-600">{c.desc}</div>
+                        <div className="text-xs text-fg-muted">{c.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -218,14 +206,14 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
               <button
                 type="button"
                 onClick={() => setDateOpen(!dateOpen)}
-                className="input-dark flex items-center gap-3"
+                className="field flex items-center gap-3"
               >
-                <CalendarClock className="w-5 h-5 text-blue-300" />
+                <CalendarClock aria-hidden="true" className="w-4 h-4 text-fg-muted" />
                 {new Date(form.appliedAt).toLocaleDateString("en-GB")}
               </button>
 
               {dateOpen && (
-                <div className="absolute bottom-full mb-2 bg-white border border-gray-200 rounded-xl p-4 z-50">
+                <div className="mt-2 w-fit max-w-full overflow-x-auto bg-surface border border-line rounded-xl p-3">
                   <DayPicker
                     mode="single"
                     selected={new Date(form.appliedAt)}
@@ -242,29 +230,30 @@ export default function EditInternshipModal({ intern, onClose, onSave }) {
             </div>
           </Field>
         </div>
-        <div className="mt-10 flex justify-end gap-4">
+        <div className="mt-6 flex justify-end gap-2">
           <button 
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
+            className={btnSecondary}
           >
             Cancel
           </button>
 
           <button 
           onClick={handleSubmit}
-          className="px-5 py-2 rounded-lg  font-medium bg-gray-900 hover:bg-gray-800 text-white "
-          >Save Changes</button>
+          className={btnPrimary}
+          >Save changes</button>
         </div>
       </div>
     </div>
   );
 }
 
+// Wrapping the control in the <label> associates the two for screen readers
 function Field({ label, children }) {
   return (
-    <div>
-      <label className="block text-sm text-gray-600 mb-2">{label}</label>
+    <label className="block">
+      <span className="block text-sm font-medium text-fg mb-1.5">{label}</span>
       {children}
-    </div>
+    </label>
   );
 }

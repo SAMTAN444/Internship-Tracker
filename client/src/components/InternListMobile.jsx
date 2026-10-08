@@ -11,7 +11,7 @@ export default function InternListMobile({
   onOpenReminder,
 }) {
   return (
-    <div className="block md:hidden px-4 py-4">
+    <div className="block md:hidden px-5 divide-y divide-line">
       {internships.map((intern) => (
         <InternCard
           key={intern._id}

@@ -1,19 +1,39 @@
-// Chip colours shared by the desktop table and the mobile cards.
-// Status chips are dark text on a light tint (see DESIGN.md, Status Palette).
+// Class names for status and cycle chips. The colours live in index.css
+// (.chip-*) as theme-aware tokens: a soft tint per stage, no border, and the
+// same text colour for every stage.
 
 export const STATUS_STYLES = {
-  Applied: "bg-gray-100 text-gray-800 border border-gray-300",
-  OA: "bg-purple-100 text-purple-900 border border-purple-300",
-  Interview: "bg-amber-100 text-amber-900 border border-amber-300",
-  Offer: "bg-[#CBFF9E] text-gray-900 border border-green-600",
-  Rejected: "bg-red-100 text-red-900 border border-red-300",
-  Archived: "bg-gray-100 text-gray-700 border border-gray-300",
+  Applied: "chip chip-applied",
+  OA: "chip chip-oa",
+  Interview: "chip chip-interview",
+  Offer: "chip chip-offer",
+  Rejected: "chip chip-rejected",
+  Archived: "chip chip-archived",
 };
 
+// Pipeline bar segments, a step stronger than the chip tints
+export const STATUS_BAR = {
+  Applied: "bar-applied",
+  OA: "bar-oa",
+  Interview: "bar-interview",
+  Offer: "bar-offer",
+  Rejected: "bar-rejected",
+};
+
+// Cycles are tags, not states: one neutral style for all of them
 export const CYCLE_STYLES = {
-  Spring: "bg-green-100 text-green-800",
-  Summer: "bg-amber-100 text-amber-800",
-  Fall: "bg-orange-100 text-orange-800",
-  Winter: "bg-blue-100 text-blue-800",
-  "6-Month": "bg-purple-100 text-purple-800",
+  Spring: "chip chip-cycle",
+  Summer: "chip chip-cycle",
+  Fall: "chip chip-cycle",
+  Winter: "chip chip-cycle",
+  "6-Month": "chip chip-cycle",
+};
+
+// Cycle icons in the add/edit forms stay neutral too
+export const CYCLE_ICON_STYLES = {
+  Spring: "text-fg-muted",
+  Summer: "text-fg-muted",
+  Fall: "text-fg-muted",
+  Winter: "text-fg-muted",
+  "6-Month": "text-fg-muted",
 };

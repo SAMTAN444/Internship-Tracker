@@ -12,21 +12,19 @@ function getTimeRemaining(date) {
 
 export default function RemindersPanel({ reminders, onOpen, onDelete }) {
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-2xl p-8">
+    <section aria-labelledby="reminders-heading" className="w-full bg-surface border border-line rounded-xl p-5 md:p-6">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-5">
-        <Bell className="w-6 h-6 text-amber-600" />
-        <h3 className="text-xl font-semibold text-gray-900">
-          Upcoming Reminders
-        </h3>
+      <div className="flex items-center gap-2 mb-4">
+        <Bell aria-hidden="true" className="w-5 h-5 text-fg-muted" />
+        <h2 id="reminders-heading" className="text-xl font-semibold text-fg">Upcoming reminders</h2>
       </div>
 
       {reminders.length === 0 ? (
-        <p className="text-sm font-medium text-gray-600">
+        <p className="text-sm text-fg-muted">
           No upcoming OA or interview reminders
         </p>
       ) : (
-        <div className="space-y-3 overflow-auto pr-2 max-h-55 md:max-h-75">
+        <div className="-mx-2 divide-y divide-line overflow-auto max-h-72">
           {reminders.map((intern) => {
             const formattedDate = new Date(
               intern.reminder.remindAt,
@@ -57,32 +55,25 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                   }
                 }}
                 aria-label={`Open reminder for ${intern.company}`}
-                className="
-                  w-full cursor-pointer
-                  rounded-xl
-                  border border-gray-200
-                  p-4
-                  hover:bg-gray-50
-                  transition
-                "
+                className="w-full cursor-pointer rounded-lg px-2 py-3 hover:bg-surface-2 transition-colors"
               >
-                <p className="text-sm md:text-base font-semibold text-gray-900 truncate">
+                <p className="text-sm font-medium text-fg truncate">
                   {intern.company}
                 </p>
 
-                <p className="text-sm text-gray-600 truncate">{intern.role}</p>
+                <p className="text-sm text-fg-muted truncate">{intern.role}</p>
 
-                <p className="text-sm text-gray-600 truncate mt-0.5">
+                <p className="text-sm text-fg-muted truncate mt-0.5">
                   {locationText}
                 </p>
 
-                <div className="mt-4 flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-2 text-sm text-gray-700">
-                    <CalendarClock className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="mt-2 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2 text-sm text-fg-muted">
+                    <CalendarClock className="w-4 h-4 text-fg-muted shrink-0" />
 
                     <span className="truncate">{formattedDate}</span>
 
-                    <span className="shrink-0 text-gray-700">
+                    <span className="shrink-0 text-fg-muted">
                       {timeRemaining}
                     </span>
                   </div>
@@ -92,7 +83,7 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
                       e.stopPropagation();
                       onDelete(intern._id);
                     }}
-                    className="shrink-0 text-gray-600 hover:text-red-600 text-sm font-semibold"
+                    className="shrink-0 min-h-10 px-2 -my-2 rounded-md text-fg-muted hover:text-danger text-sm font-medium"
                     title="Remove reminder"
                   >
                     Delete
@@ -103,6 +94,6 @@ export default function RemindersPanel({ reminders, onOpen, onDelete }) {
           })}
         </div>
       )}
-    </div>
+    </section>
   );
 }

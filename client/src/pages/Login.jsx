@@ -36,7 +36,7 @@ export default function Login() {
       footer={
         <>
           New to Trackly?{" "}
-          <Link to="/register" className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700">
+          <Link to="/register" className="font-semibold text-fg underline underline-offset-2 hover:text-fg-muted">
             Create an account
           </Link>
         </>
@@ -62,7 +62,7 @@ export default function Login() {
           <div className="mt-2 text-right">
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-gray-900 underline underline-offset-2 hover:text-gray-700"
+              className="text-sm font-medium text-fg underline underline-offset-2 hover:text-fg-muted"
             >
               Forgot password?
             </Link>
@@ -72,12 +72,12 @@ export default function Login() {
         <FormError>{error}</FormError>
 
         {serverDown && (
-          <div role="alert" className="space-y-3 p-3 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-lg">
+          <div role="alert" className="space-y-3 p-3 text-sm text-fg bg-surface-2 border border-line rounded-lg">
             <p>{profileError}</p>
             <button
               type="button"
               onClick={refreshProfile}
-              className="min-h-10 px-4 text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+              className="min-h-10 px-4 text-sm font-semibold text-fg bg-surface border border-line-strong rounded-lg hover:bg-surface-2"
             >
               Try again
             </button>

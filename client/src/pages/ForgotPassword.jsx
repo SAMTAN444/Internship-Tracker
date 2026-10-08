@@ -28,7 +28,7 @@ export default function ForgotPassword() {
   };
 
   const backToLogin = (
-    <Link to="/login" className="font-semibold text-gray-900 underline underline-offset-2 hover:text-gray-700">
+    <Link to="/login" className="font-semibold text-fg underline underline-offset-2 hover:text-fg-muted">
       Back to log in
     </Link>
   );
@@ -36,16 +36,16 @@ export default function ForgotPassword() {
   if (sentTo) {
     return (
       <AuthShell title="Check your email" footer={backToLogin}>
-        <div role="status" className="space-y-3 text-sm text-gray-700">
+        <div role="status" className="space-y-3 text-sm text-fg-muted">
           <p>
-            If an account exists for <span className="font-semibold text-gray-900">{sentTo}</span>, we&apos;ve sent a
+            If an account exists for <span className="font-semibold text-fg">{sentTo}</span>, we&apos;ve sent a
             link to reset the password. It expires in an hour.
           </p>
           <p>Not there? Check your spam folder, or</p>
           <button
             type="button"
             onClick={() => setSentTo("")}
-            className="min-h-11 px-5 font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+            className="min-h-11 px-5 font-semibold text-fg bg-surface border border-line-strong rounded-lg hover:bg-surface-2"
           >
             Try a different email
           </button>

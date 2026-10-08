@@ -1,197 +1,226 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { getInternship, updateInternship } from "../services/internships";
-import { toast } from "react-toastify";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import logo from "../assets/logo.svg";
-import { useCallback } from "react";
+import { toast } from "react-toastify";
+import { HiArrowLeft } from "react-icons/hi";
+import { getInternship, updateInternship } from "../services/internships";
+import { LoadingScreen } from "../components/StatusScreen";
+import Logo from "../components/Logo";
+
+const isMac = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
+
+const MARKDOWN_TIPS = [
+  ["# Heading", "Large heading"],
+  ["## Heading", "Smaller heading"],
+  ["**bold**", "Bold"],
+  ["*italic*", "Italic"],
+  ["- item", "Bullet list"],
+  ["1. item", "Numbered list"],
+  ["> quote", "Quote"],
+  ["`code`", "Inline code"],
+  ["[text](url)", "Link"],
+];
+
+const segmentClass = (active) =>
+  `min-h-9 px-4 rounded-md text-sm font-medium transition-colors ${
+    active ? "bg-brand-soft text-fg" : "text-fg-muted hover:text-fg"
+  }`;
 
 export default function NotesPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [internship, setInternship] = useState(null);
   const [notes, setNotes] = useState("");
-  const [isPreview, setIsPreview] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [originalNotes, setOriginalNotes] = useState("");
+  const [loadError, setLoadError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
+  const [showTips, setShowTips] = useState(false);
 
-  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const isDirty = notes !== originalNotes;
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoadError(false);
+    setInternship(null);
     getInternship(id)
       .then((data) => {
         setInternship(data);
         setNotes(data.notes || "");
         setOriginalNotes(data.notes || "");
-        setLoading(false);
       })
-      .catch(() => {
-        toast.error("Failed to load notes");
-        navigate("/");
-      });
+      .catch(() => setLoadError(true));
   }, [id]);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
   const handleSave = useCallback(async () => {
+    if (!isDirty || saving) return;
+    setSaving(true);
     try {
       await updateInternship(id, { notes });
       setOriginalNotes(notes);
-      toast.success("Notes updated");
-    } catch (err) {
-      toast.error("Failed to save notes");
+      toast.success("Notes saved");
+    } catch {
+      toast.error("Couldn't save notes. Your changes are still here; try again.");
+    } finally {
+      setSaving(false);
     }
-  }, [notes, id]);
+  }, [id, notes, isDirty, saving]);
 
-  const isDirty = notes !== originalNotes;
-
+  // Cmd/Ctrl+S saves
   useEffect(() => {
     function handleKeyDown(e) {
-      if (
-        (isMac && e.metaKey && e.key === "s") ||
-        (!isMac && e.ctrlKey && e.key === "s")
-      ) {
+      if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         handleSave();
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleSave, isMac]);
+  }, [handleSave]);
 
-  if (loading) {
+  // Warn before closing the tab with unsaved notes
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (e) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
+
+  const header = (
+    <header className="border-b border-line bg-surface">
+      <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center gap-2 min-h-11 text-sm font-semibold text-fg hover:text-fg-muted"
+        >
+          <HiArrowLeft aria-hidden="true" className="w-5 h-5" />
+          Back to dashboard
+        </Link>
+        <Logo size="sm" />
+      </div>
+    </header>
+  );
+
+  if (loadError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-        <p className="mt-4 text-sm text-gray-600">Loading dashboard…</p>
+      <div className="min-h-screen bg-canvas text-fg">
+        {header}
+        <main className="max-w-4xl mx-auto px-4 py-12 md:px-6">
+          <div role="alert" className="bg-surface border border-line rounded-xl p-6">
+            <h1 className="text-base font-semibold">Couldn&apos;t load these notes</h1>
+            <p className="mt-2 text-sm text-fg-muted">
+              The application may have been deleted, or the server may be waking up.
+            </p>
+            <button
+              type="button"
+              onClick={load}
+              className="mt-4 min-h-10 px-4 text-sm font-medium text-on-brand bg-brand rounded-lg hover:bg-brand-hover"
+            >
+              Try again
+            </button>
+          </div>
+        </main>
       </div>
     );
   }
 
+  if (!internship) return <LoadingScreen label="Loading notes…" />;
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
-      {/* Top Bar */}
-      <header className="border-gray-200 border-b bg-gray-100">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-3">
-          <div className="flex items-center gap-2.5">
-            <img src={logo} alt="" className="h-9 md:h-10 w-auto" />
-            <span className="text-2xl font-bold tracking-tight text-gray-900">
-              Trackly
-            </span>
-          </div>
+    <div className="min-h-screen bg-canvas text-fg flex flex-col">
+      {header}
 
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-800 group hover:text-gray-900"
-          >
-            <span className="transform transition-transform duration-200 group-hover:-translate-x-1">
-              ←
-            </span>
-            <span className="text-lg font-medium">Back to Home</span>
-          </button>
-        </div>
-      </header>
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:px-6 md:py-10">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance">{internship.company}</h1>
+        <p className="mt-1 text-sm text-fg-muted">{internship.role}</p>
 
-      <div className="flex-1 w-full max-w-6xl mx-auto p-10">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">{internship.company}</h1>
-        <p className="text-lg text-gray-700 mb-6">{internship.role}</p>
-
-        {/* Edit / Preview Toggle */}
-        <div className="flex gap-4 mb-6">
-          <div className="flex rounded-xl gap-2 p-1">
-            <button
-              onClick={() => setIsPreview(false)}
-              className={`px-5 py-2 rounded-md font-semibold transition-all duration-200 ${
-                !isPreview
-                  ? "bg-[#CBFF9E] text-gray-900"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-            >
+        {/* Toolbar */}
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div role="group" aria-label="Notes view" className="flex gap-0.5 p-0.5 border border-line rounded-lg bg-surface">
+            <button type="button" aria-pressed={!isPreview} onClick={() => setIsPreview(false)} className={segmentClass(!isPreview)}>
               Edit
             </button>
-            <button
-              onClick={() => setIsPreview(true)}
-              className={`px-5 py-2 rounded-md font-semibold transition-all duration-200 ${
-                isPreview
-                  ? "bg-[#CBFF9E] text-gray-900"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-            >
+            <button type="button" aria-pressed={isPreview} onClick={() => setIsPreview(true)} className={segmentClass(isPreview)}>
               Preview
             </button>
           </div>
 
-          <button
-            onClick={isDirty ? handleSave : null}
-            disabled={!isDirty}
-            className={`ml-auto flex items-center gap-2 px-5 py-2 rounded-xl font-semibold
-            ${
-              isDirty
-                ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                : "bg-gray-200 text-gray-600 cursor-not-allowed"
-            }
-        `}
-          >
-            <span>Save</span>
-            <span
-              className={`flex items-center gap-1 px-2 py-1 rounded-md ${
-                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-600"
-              }`}
+          {!isPreview && (
+            <button
+              type="button"
+              aria-expanded={showTips}
+              aria-controls="markdown-tips"
+              onClick={() => setShowTips((v) => !v)}
+              className="min-h-10 px-3 text-sm font-medium text-fg rounded-lg hover:bg-surface-2"
             >
-              {navigator.userAgentData?.platform === "macOS" ||
-              navigator.platform.toLowerCase().includes("mac")
-                ? "⌘"
-                : "Ctrl"}
+              {showTips ? "Hide Markdown tips" : "Markdown tips"}
+            </button>
+          )}
+
+          <div className="ml-auto flex items-center gap-3">
+            <span role="status" className="text-sm text-fg-muted">
+              {saving ? "Saving…" : isDirty ? "Unsaved changes" : "All changes saved"}
             </span>
-            <span
-              className={`flex items-center gap-1 px-2 py-1 rounded-md ${
-                isDirty ? "bg-blue-500 text-white" : "bg-white/20 text-gray-600"
-              }`}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!isDirty || saving}
+              aria-keyshortcuts={isMac ? "Meta+S" : "Control+S"}
+              className="inline-flex items-center gap-2 min-h-10 px-4 text-sm font-medium rounded-lg text-on-brand bg-brand hover:bg-brand-hover disabled:bg-surface-2 disabled:text-fg-muted disabled:cursor-not-allowed"
             >
-              S
-            </span>
-          </button>
+              Save
+              <kbd className="hidden sm:inline font-sans text-xs font-medium opacity-80">{isMac ? "⌘S" : "Ctrl+S"}</kbd>
+            </button>
+          </div>
         </div>
 
-        {/* Editor / Preview */}
-        {!isPreview ? (
-          <div className="relative">
-            <textarea
-              className="w-full h-[40vh] md:h-[65vh] bg-white text-gray-800 border border-gray-200 rounded-lg p-4 resize-none text-lg 
-           focus:outline-none focus:ring-1 focus:ring-gray-600"
-              placeholder="Start writing your notes in Markdown..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-            <div className="hidden md:block absolute bottom-10 left-10 text-gray-600 text-lg font-semibold pointer-events-none select-none">
-              <h4 className="uppercase tracking-widest text-gray-600 mb-3">
-                MARKDOWN TIPS
-              </h4>
-
-              <div className="flex gap-12">
-                <div>
-                  <p># Heading 1</p>
-                  <p>**bold**</p>
-                  <p>- bullet point</p>
-                  <p>{`> blockquote`}</p>
-                  <p>[link](url)</p>
-                </div>
-
-                <div>
-                  <p>## Heading 2</p>
-                  <p>*italic*</p>
-                  <p>1. numbered list</p>
-                  <p>`inline code`</p>
-                  <p>{`'''code block'''`}</p>
-                </div>
+        {!isPreview && showTips && (
+          <dl
+            id="markdown-tips"
+            className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 p-4 text-sm border border-line rounded-xl bg-surface-2"
+          >
+            {MARKDOWN_TIPS.map(([syntax, meaning]) => (
+              <div key={syntax} className="flex items-baseline gap-2 min-w-0">
+                <dt>
+                  <code className="font-mono text-fg">{syntax}</code>
+                </dt>
+                <dd className="text-fg-muted truncate">{meaning}</dd>
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full h-[65vh] bg-white text-lg font-semibold text-gray-800 border border-gray-200 rounded-lg p-6 overflow-auto prose prose-invert">
-            <ReactMarkdown>{notes}</ReactMarkdown>
-          </div>
+            ))}
+          </dl>
         )}
-      </div>
+
+        {/* Editor / Preview */}
+        <div className="mt-4">
+          {!isPreview ? (
+            <>
+              <label htmlFor="notes" className="sr-only">
+                Notes for {internship.company}
+              </label>
+              <textarea
+                id="notes"
+                className="w-full h-[55vh] md:h-[60vh] p-4 text-base leading-relaxed text-fg bg-surface border border-line-strong rounded-xl resize-y placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-brand/40"
+                placeholder="Interview dates, contacts, questions they asked… Markdown works here."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </>
+          ) : (
+            <div className="min-h-[55vh] md:min-h-[60vh] p-4 md:p-6 bg-surface border border-line rounded-xl overflow-auto">
+              {notes.trim() ? (
+                <div className="prose prose-gray max-w-none">
+                  <ReactMarkdown>{notes}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm text-fg-muted">Nothing to preview yet. Switch to Edit to write some notes.</p>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

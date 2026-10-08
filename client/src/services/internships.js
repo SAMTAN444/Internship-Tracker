@@ -14,4 +14,6 @@ export const bulkUpdateStatus = (ids, status) => API.put("/api/internships/bulk-
 
 export const setReminder = (id, reminder) => API.put(`/api/internships/${id}/reminder`, reminder).then(body);
 export const clearReminder = (id) => API.delete(`/api/internships/${id}/reminder`).then(body);
+export const getStats = () => API.get("/api/internships/stats").then(body);
+
 export const getUpcomingReminders = () => API.get("/api/internships/reminders/upcoming").then(body);
