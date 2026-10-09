@@ -1,5 +1,7 @@
 # Trackly
 
+[![CI](https://github.com/SAMTAN444/Internship-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/SAMTAN444/Internship-Tracker/actions/workflows/ci.yml)
+
 Trackly is a production-ready full-stack web application that helps users manage internship applications, track progress, and stay organised throughout the recruitment journey.
 
 ---
