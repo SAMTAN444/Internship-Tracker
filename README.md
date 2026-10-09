@@ -114,11 +114,24 @@ server/
 
 ## Testing & Code Quality
 
-- Manual testing across all major user flows
-- Consistent code formatting and linting
-- Centralised error handling for predictable behaviour
+End-to-end tests live in `e2e/` and use **Playwright**. Each run starts its own isolated stack: an in-memory MongoDB, the **Firebase Auth Emulator**, the API and the client. Your real database and Firebase project are never touched, and no emails are sent.
 
-*(Automated testing planned as a future improvement.)*
+27 tests cover:
+- **Authentication:** register, email verification, login errors, logout, forgot password, protected routes, finishing an interrupted sign-up
+- **Dashboard:** pagination, search, sorting, add / edit / delete, bulk archive and unarchive, pipeline stats, row menu placement, mobile layout
+- **Notes and Settings:** Markdown save and preview, inline errors, theme switching
+- **API security:** token checks, per-user data isolation, mass-assignment protection, search sanitization, input validation
+
+```bash
+cd e2e
+npm install
+npx playwright install chromium   # first time only
+npm test                          # headless run
+npm run test:ui                   # interactive Playwright UI
+npm run report                    # open the last HTML report
+```
+
+Requires Node 22+. The Auth Emulator runs on Node alone, so no Java is needed. Linting runs with `npm run lint` in `client/`.
 
 ---
 

@@ -1,0 +1,17 @@
+{
+  "name": "trackly-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests for Trackly (Playwright + Firebase Auth Emulator + in-memory MongoDB)",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "firebase-tools": "^15.33.0",
+    "mongodb-memory-server": "^11.3.0"
+  }
+}

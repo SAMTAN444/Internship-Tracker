@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app"
-import { getAuth } from "firebase/auth"
+import { connectAuthEmulator, getAuth } from "firebase/auth"
 
 const app = initializeApp({
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -10,6 +10,13 @@ const app = initializeApp({
 
 // Firebase keeps the session in IndexedDB and refreshes ID tokens itself.
 export const auth = getAuth(app);
+
+// End-to-end tests point the app at the local Firebase Auth Emulator instead
+// of the real project (set only by e2e/playwright.config.js).
+const emulatorHost = import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_HOST;
+if (emulatorHost) {
+    connectAuthEmulator(auth, `http://${emulatorHost}`, { disableWarnings: true });
+}
 
 // Where the "Continue" button in verification/reset emails sends people.
 export const emailActionSettings = () => ({ url: `${window.location.origin}/login` });

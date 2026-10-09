@@ -21,6 +21,8 @@ export default function StatusDropdown({ value, setValue, scope }) {
     <Listbox value={value} onChange={setValue}>
       <div className="relative w-full">
         <ListboxButton
+          // Its visible text is just the current value, so name the control's purpose
+          aria-label={`Status to apply: ${scope === "archived" && value === "Applied" ? "Unarchive" : value}`}
           className="field flex items-center justify-between gap-2 text-left text-sm! hover:border-fg-muted"
         >
           <span>

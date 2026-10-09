@@ -18,3 +18,10 @@ build/
 # Claude Code / Impeccable tooling (local)
 .claude/
 .impeccable/
+# Playwright (e2e) output
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+e2e/playwright/.cache/
+# Firebase emulator logs
+*-debug.log
